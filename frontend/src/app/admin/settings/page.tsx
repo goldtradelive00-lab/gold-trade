@@ -8,15 +8,12 @@ import { getErrorMessage } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { useAuthStore } from "@/stores/auth-store";
 
 export default function AdminSettingsPage() {
   const user = useAuthStore((s) => s.user);
   const queryClient = useQueryClient();
-  const [notifyWithdrawals, setNotifyWithdrawals] = useState(true);
-  const [notifySignups, setNotifySignups] = useState(true);
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [savingWhatsapp, setSavingWhatsapp] = useState(false);
 
@@ -28,11 +25,6 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     if (whatsapp?.whatsapp_number) setWhatsappNumber(whatsapp.whatsapp_number);
   }, [whatsapp]);
-
-  const save = () => {
-    // Persist to backend once the settings endpoint is wired up.
-    toast.success("Settings saved");
-  };
 
   const saveWhatsapp = async () => {
     if (!whatsappNumber.trim()) {
@@ -68,28 +60,6 @@ export default function AdminSettingsPage() {
             </p>
           </div>
         </div>
-      </div>
-
-      <div className="hairline-border rounded-xl bg-card p-6">
-        <h2 className="text-sm uppercase tracking-widest text-muted-foreground">Notifications</h2>
-        <div className="mt-4 space-y-4">
-          <label className="flex items-center gap-3 text-sm text-foreground">
-            <Checkbox
-              checked={notifyWithdrawals}
-              onCheckedChange={(v) => setNotifyWithdrawals(v === true)}
-            />
-            Email me when a withdrawal request is submitted
-          </label>
-          <label className="flex items-center gap-3 text-sm text-foreground">
-            <Checkbox
-              checked={notifySignups}
-              onCheckedChange={(v) => setNotifySignups(v === true)}
-            />
-            Email me when a new investor applies
-          </label>
-        </div>
-        <Separator className="my-6" />
-        <Button onClick={save}>Save Changes</Button>
       </div>
 
       <div className="hairline-border rounded-xl bg-card p-6">
