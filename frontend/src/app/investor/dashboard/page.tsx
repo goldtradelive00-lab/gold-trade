@@ -24,6 +24,7 @@ const TX_BADGE: Record<string, string> = {
   deposit: "bg-primary text-primary-foreground",
   withdrawal: "bg-secondary text-secondary-foreground",
   dividend: "bg-secondary text-secondary-foreground",
+  referral_bonus: "bg-primary text-primary-foreground",
 };
 
 export default function InvestorDashboardPage() {
@@ -104,7 +105,7 @@ export default function InvestorDashboardPage() {
                   </TableCell>
                   <TableCell>{tx.description}</TableCell>
                   <TableCell>
-                    <Badge className={TX_BADGE[tx.type]}>{tx.type.toUpperCase()}</Badge>
+                    <Badge className={TX_BADGE[tx.type]}>{tx.type.replace("_", " ").toUpperCase()}</Badge>
                   </TableCell>
                   <TableCell className="font-serif-display text-right text-foreground">
                     {formatCurrency(tx.amount)}

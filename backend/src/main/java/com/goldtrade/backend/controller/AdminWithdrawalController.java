@@ -15,6 +15,7 @@ import com.goldtrade.backend.repository.UserRepository;
 import com.goldtrade.backend.repository.WithdrawRequestRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
@@ -53,6 +54,7 @@ public class AdminWithdrawalController {
     }
 
     // POST /api/admin/withdrawals/{id}/approve — deducts cash and logs a transaction
+    @Transactional
     @PostMapping("/{id}/approve")
     public ResponseEntity<ApiResponse<?>> approve(@PathVariable String id, Authentication auth) {
         WithdrawRequest request = withdrawRequestRepo.findById(id)

@@ -79,6 +79,12 @@ public class AuthController {
         user.setKycStatus("pending");
         user.setReferralCode(generateReferralCode(fullName));
 
+        Object rawReferralCode = body.get("referral_code");
+        if (rawReferralCode instanceof String code && !code.isBlank()) {
+            userRepo.findByReferralCode(code.trim().toUpperCase())
+                    .ifPresent(referrer -> user.setReferredBy(referrer.getId()));
+        }
+
         String token = UUID.randomUUID().toString();
         user.setVerificationToken(token);
         user.setVerificationTokenExpires(OffsetDateTime.now(ZoneOffset.UTC).plusHours(24));

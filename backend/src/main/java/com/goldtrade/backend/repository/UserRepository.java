@@ -13,4 +13,5 @@ public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findByVerificationToken(String verificationToken);
     Optional<User> findByReferralCode(String referralCode);
     List<User> findByIsApproved(Boolean isApproved);
+    List<User> findByReferredByOrderByCreatedAtDesc(String referredBy);
 }

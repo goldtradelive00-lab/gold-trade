@@ -55,9 +55,10 @@ public class AdminFinanceController {
         BigDecimal dividends = sumByType(all, "dividend");
         BigDecimal buys = sumByType(all, "buy");
         BigDecimal sells = sumByType(all, "sell");
-        BigDecimal moneyIn = deposits.add(dividends).add(sells);
+        BigDecimal referralBonuses = sumByType(all, "referral_bonus");
+        BigDecimal moneyIn = deposits.add(dividends).add(sells).add(referralBonuses);
         BigDecimal moneyOut = withdrawals.add(buys);
-        BigDecimal netFlow = deposits.add(dividends).subtract(withdrawals);
+        BigDecimal netFlow = deposits.add(dividends).add(referralBonuses).subtract(withdrawals);
 
         List<WithdrawRequest> pending = withdrawRequestRepo.findAllByOrderByRequestedAtDesc().stream()
                 .filter(w -> "pending".equals(w.getStatus()))
@@ -81,6 +82,7 @@ public class AdminFinanceController {
         result.put("total_dividends", dividends);
         result.put("total_buys", buys);
         result.put("total_sells", sells);
+        result.put("total_referral_bonuses", referralBonuses);
         result.put("money_in", moneyIn);
         result.put("money_out", moneyOut);
         result.put("net_flow", netFlow);

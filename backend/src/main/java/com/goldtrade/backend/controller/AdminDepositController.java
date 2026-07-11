@@ -4,6 +4,7 @@ import com.goldtrade.backend.dto.response.ApiResponse;
 import com.goldtrade.backend.entity.Admin;
 import com.goldtrade.backend.entity.DepositRequest;
 import com.goldtrade.backend.entity.Portfolio;
+import com.goldtrade.backend.entity.ReferralEarning;
 import com.goldtrade.backend.entity.Transaction;
 import com.goldtrade.backend.entity.User;
 import com.goldtrade.backend.exception.BadRequestException;
@@ -11,12 +12,16 @@ import com.goldtrade.backend.exception.ResourceNotFoundException;
 import com.goldtrade.backend.repository.AdminRepository;
 import com.goldtrade.backend.repository.DepositRequestRepository;
 import com.goldtrade.backend.repository.PortfolioRepository;
+import com.goldtrade.backend.repository.ReferralEarningRepository;
 import com.goldtrade.backend.repository.TransactionRepository;
 import com.goldtrade.backend.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -26,22 +31,27 @@ import java.util.Map;
 @RequestMapping("/api/admin/deposit-requests")
 public class AdminDepositController {
 
+    private static final BigDecimal REFERRAL_COMMISSION_RATE = new BigDecimal("0.05");
+
     private final DepositRequestRepository depositRequestRepo;
     private final PortfolioRepository portfolioRepo;
     private final TransactionRepository transactionRepo;
     private final UserRepository userRepo;
     private final AdminRepository adminRepo;
+    private final ReferralEarningRepository referralEarningRepo;
 
     public AdminDepositController(DepositRequestRepository depositRequestRepo,
                                    PortfolioRepository portfolioRepo,
                                    TransactionRepository transactionRepo,
                                    UserRepository userRepo,
-                                   AdminRepository adminRepo) {
+                                   AdminRepository adminRepo,
+                                   ReferralEarningRepository referralEarningRepo) {
         this.depositRequestRepo = depositRequestRepo;
         this.portfolioRepo = portfolioRepo;
         this.transactionRepo = transactionRepo;
         this.userRepo = userRepo;
         this.adminRepo = adminRepo;
+        this.referralEarningRepo = referralEarningRepo;
     }
 
     // GET /api/admin/deposit-requests
@@ -53,6 +63,7 @@ public class AdminDepositController {
     }
 
     // POST /api/admin/deposit-requests/{id}/approve — credits cash and logs a transaction
+    @Transactional
     @PostMapping("/{id}/approve")
     public ResponseEntity<ApiResponse<?>> approve(@PathVariable String id, Authentication auth) {
         DepositRequest request = depositRequestRepo.findById(id)
@@ -74,12 +85,44 @@ public class AdminDepositController {
         tx.setAmount(request.getAmount());
         transactionRepo.save(tx);
 
+        User depositor = userRepo.findById(request.getUserId()).orElse(null);
+        if (depositor != null && depositor.getReferredBy() != null) {
+            creditReferralCommission(depositor.getReferredBy(), depositor, request);
+        }
+
         request.setStatus("approved");
         request.setReviewedBy((String) auth.getPrincipal());
         request.setReviewedAt(OffsetDateTime.now(ZoneOffset.UTC));
         depositRequestRepo.save(request);
 
         return ResponseEntity.ok(ApiResponse.success(null, "Deposit approved"));
+    }
+
+    private void creditReferralCommission(String referrerId, User depositor, DepositRequest request) {
+        Portfolio referrerPortfolio = portfolioRepo.findByUserId(referrerId).orElse(null);
+        if (referrerPortfolio == null) return;
+
+        BigDecimal commission = request.getAmount()
+                .multiply(REFERRAL_COMMISSION_RATE)
+                .setScale(2, RoundingMode.HALF_UP);
+
+        referrerPortfolio.setCashBalance(referrerPortfolio.getCashBalance().add(commission));
+        portfolioRepo.save(referrerPortfolio);
+
+        Transaction bonusTx = new Transaction();
+        bonusTx.setPortfolioId(referrerPortfolio.getId());
+        bonusTx.setType("referral_bonus");
+        bonusTx.setDescription("Referral bonus from " + depositor.getFullName());
+        bonusTx.setAmount(commission);
+        transactionRepo.save(bonusTx);
+
+        ReferralEarning earning = new ReferralEarning();
+        earning.setReferrerId(referrerId);
+        earning.setReferredUserId(depositor.getId());
+        earning.setDepositRequestId(request.getId());
+        earning.setDepositAmount(request.getAmount());
+        earning.setCommissionAmount(commission);
+        referralEarningRepo.save(earning);
     }
 
     // POST /api/admin/deposit-requests/{id}/reject

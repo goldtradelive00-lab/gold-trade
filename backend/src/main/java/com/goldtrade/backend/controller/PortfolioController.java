@@ -5,7 +5,9 @@ import com.goldtrade.backend.entity.AppSetting;
 import com.goldtrade.backend.entity.DepositRequest;
 import com.goldtrade.backend.entity.Holding;
 import com.goldtrade.backend.entity.Portfolio;
+import com.goldtrade.backend.entity.ReferralEarning;
 import com.goldtrade.backend.entity.Transaction;
+import com.goldtrade.backend.entity.User;
 import com.goldtrade.backend.entity.WithdrawRequest;
 import com.goldtrade.backend.exception.BadRequestException;
 import com.goldtrade.backend.exception.ResourceNotFoundException;
@@ -13,7 +15,9 @@ import com.goldtrade.backend.repository.AppSettingRepository;
 import com.goldtrade.backend.repository.DepositRequestRepository;
 import com.goldtrade.backend.repository.HoldingRepository;
 import com.goldtrade.backend.repository.PortfolioRepository;
+import com.goldtrade.backend.repository.ReferralEarningRepository;
 import com.goldtrade.backend.repository.TransactionRepository;
+import com.goldtrade.backend.repository.UserRepository;
 import com.goldtrade.backend.repository.WithdrawRequestRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -36,19 +40,25 @@ public class PortfolioController {
     private final WithdrawRequestRepository withdrawRequestRepo;
     private final DepositRequestRepository depositRequestRepo;
     private final AppSettingRepository settingRepo;
+    private final UserRepository userRepo;
+    private final ReferralEarningRepository referralEarningRepo;
 
     public PortfolioController(PortfolioRepository portfolioRepo,
                                 HoldingRepository holdingRepo,
                                 TransactionRepository transactionRepo,
                                 WithdrawRequestRepository withdrawRequestRepo,
                                 DepositRequestRepository depositRequestRepo,
-                                AppSettingRepository settingRepo) {
+                                AppSettingRepository settingRepo,
+                                UserRepository userRepo,
+                                ReferralEarningRepository referralEarningRepo) {
         this.portfolioRepo = portfolioRepo;
         this.holdingRepo = holdingRepo;
         this.transactionRepo = transactionRepo;
         this.withdrawRequestRepo = withdrawRequestRepo;
         this.depositRequestRepo = depositRequestRepo;
         this.settingRepo = settingRepo;
+        this.userRepo = userRepo;
+        this.referralEarningRepo = referralEarningRepo;
     }
 
     // GET /api/portfolio — current investor's overview
@@ -128,6 +138,45 @@ public class PortfolioController {
         depositRequestRepo.save(request);
 
         return ResponseEntity.ok(ApiResponse.success(null, "Deposit request submitted for review"));
+    }
+
+    // GET /api/portfolio/referrals — investors referred by me, and my 5% deposit-commission earnings
+    @GetMapping("/referrals")
+    public ResponseEntity<ApiResponse<?>> getMyReferrals(Authentication auth) {
+        String userId = (String) auth.getPrincipal();
+
+        List<User> referredUsers = userRepo.findByReferredByOrderByCreatedAtDesc(userId);
+        List<Map<String, Object>> referredRows = referredUsers.stream().map(u -> {
+            Map<String, Object> row = new java.util.HashMap<>();
+            row.put("id", u.getId());
+            row.put("full_name", u.getFullName());
+            row.put("email", u.getEmail());
+            row.put("joined_at", u.getCreatedAt());
+            return row;
+        }).toList();
+
+        List<ReferralEarning> earnings = referralEarningRepo.findByReferrerIdOrderByCreatedAtDesc(userId);
+        List<Map<String, Object>> earningRows = earnings.stream().map(e -> {
+            User referred = userRepo.findById(e.getReferredUserId()).orElse(null);
+            Map<String, Object> row = new java.util.HashMap<>();
+            row.put("id", e.getId());
+            row.put("referred_user_name", referred != null ? referred.getFullName() : "Unknown");
+            row.put("referred_user_email", referred != null ? referred.getEmail() : "");
+            row.put("deposit_amount", e.getDepositAmount());
+            row.put("commission_amount", e.getCommissionAmount());
+            row.put("created_at", e.getCreatedAt());
+            return row;
+        }).toList();
+
+        BigDecimal totalEarned = earnings.stream()
+                .map(ReferralEarning::getCommissionAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return ResponseEntity.ok(ApiResponse.success(Map.of(
+                "referred_users", referredRows,
+                "earnings", earningRows,
+                "total_earned", totalEarned
+        )));
     }
 
     private String requireText(Object raw, String errorMessage) {

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { Gift } from "lucide-react";
 
 import { AuthCard } from "@/components/marketing/auth-card";
 import { Button } from "@/components/ui/button";
@@ -34,8 +35,10 @@ const schema = z
   });
 type FormValues = z.infer<typeof schema>;
 
-export default function JoinPage() {
+function JoinForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const referralCode = searchParams.get("ref")?.trim().toUpperCase() || "";
   const [submitting, setSubmitting] = useState(false);
   const {
     register,
@@ -55,6 +58,7 @@ export default function JoinPage() {
         email: values.email,
         phone_number: values.phone_number,
         password: values.password,
+        referral_code: referralCode || undefined,
       });
       sessionStorage.setItem("pendingVerificationEmail", values.email);
       router.push("/verify-email-pending");
@@ -70,6 +74,14 @@ export default function JoinPage() {
       subtitle="Membership is limited to ensure concierge-level attention."
       backgroundImage="/media/pexels-koprivakart-6638269.jpg"
     >
+      {referralCode && (
+        <div className="hairline-border mb-4 flex items-center gap-2.5 rounded-lg bg-secondary/40 px-3 py-2.5">
+          <Gift className="size-4 shrink-0 text-primary" />
+          <p className="text-sm text-foreground">
+            Referred by <span className="font-medium text-primary">{referralCode}</span>
+          </p>
+        </div>
+      )}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div className="space-y-2">
           <Label htmlFor="full_name">
@@ -155,5 +167,13 @@ export default function JoinPage() {
         </Link>
       </p>
     </AuthCard>
+  );
+}
+
+export default function JoinPage() {
+  return (
+    <Suspense>
+      <JoinForm />
+    </Suspense>
   );
 }
