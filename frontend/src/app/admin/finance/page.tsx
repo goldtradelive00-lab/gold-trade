@@ -17,9 +17,6 @@ import {
 interface FinanceOverview {
   total_deposits: number;
   total_withdrawals: number;
-  total_dividends: number;
-  total_buys: number;
-  total_sells: number;
   total_referral_bonuses: number;
   total_daily_profits: number;
   money_in: number;
@@ -27,7 +24,6 @@ interface FinanceOverview {
   net_flow: number;
   total_aum: number;
   total_cash_balance: number;
-  total_holdings_value: number;
   pending_withdrawals_amount: number;
   pending_withdrawals_count: number;
   transaction_count: number;
@@ -37,18 +33,15 @@ interface LedgerRow {
   id: string;
   investor_name: string;
   investor_email: string;
-  type: "buy" | "sell" | "deposit" | "withdrawal" | "dividend" | "referral_bonus" | "daily_profit";
+  type: "deposit" | "withdrawal" | "referral_bonus" | "daily_profit";
   description: string;
   amount: number;
   occurred_at: string;
 }
 
 const TYPE_BADGE: Record<LedgerRow["type"], string> = {
-  buy: "bg-secondary text-secondary-foreground",
-  sell: "bg-secondary text-secondary-foreground",
   deposit: "bg-primary text-primary-foreground",
   withdrawal: "bg-destructive text-destructive-foreground",
-  dividend: "bg-secondary text-secondary-foreground",
   referral_bonus: "bg-primary text-primary-foreground",
   daily_profit: "bg-primary text-primary-foreground",
 };
@@ -76,24 +69,21 @@ export default function AdminFinancePage() {
           <p className="font-serif-display mt-2 text-2xl text-primary">
             {formatCurrency(overview.total_aum)}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Cash {formatCurrency(overview.total_cash_balance)} · Holdings{" "}
-            {formatCurrency(overview.total_holdings_value)}
-          </p>
+          <p className="mt-1 text-xs text-muted-foreground">Cash balances across every investor</p>
         </div>
         <div className="hairline-border rounded-xl bg-card p-6">
           <p className="text-xs uppercase tracking-widest text-muted-foreground">Money In</p>
           <p className="font-serif-display mt-2 text-2xl text-foreground">
             {formatCurrency(overview.money_in)}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">Deposits, dividends, sales, referral bonuses &amp; daily profit</p>
+          <p className="mt-1 text-xs text-muted-foreground">Deposits, referral bonuses &amp; daily profit</p>
         </div>
         <div className="hairline-border rounded-xl bg-card p-6">
           <p className="text-xs uppercase tracking-widest text-muted-foreground">Money Out</p>
           <p className="font-serif-display mt-2 text-2xl text-foreground">
             {formatCurrency(overview.money_out)}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">Withdrawals &amp; purchases</p>
+          <p className="mt-1 text-xs text-muted-foreground">Withdrawals</p>
         </div>
       </div>
 
@@ -105,14 +95,11 @@ export default function AdminFinancePage() {
           </h2>
           <div className="mt-4 space-y-3 text-sm">
             <Row label="Deposits" value={overview.total_deposits} positive />
-            <Row label="Dividends" value={overview.total_dividends} positive />
             <Row label="Referral Bonuses" value={overview.total_referral_bonuses} positive />
             <Row label="Daily Profits (1%)" value={overview.total_daily_profits} positive />
             <Row label="Withdrawals" value={overview.total_withdrawals} />
-            <Row label="Buys" value={overview.total_buys} />
-            <Row label="Sells" value={overview.total_sells} positive />
             <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-              <span className="text-foreground">Net Flow (deposits + dividends + bonuses − withdrawals)</span>
+              <span className="text-foreground">Net Flow (deposits + bonuses + profit − withdrawals)</span>
               <span
                 className={`font-serif-display ${overview.net_flow >= 0 ? "text-primary" : "text-destructive-foreground"}`}
               >

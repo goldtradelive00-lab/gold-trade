@@ -4,7 +4,6 @@ import com.goldtrade.backend.dto.response.ApiResponse;
 import com.goldtrade.backend.entity.Portfolio;
 import com.goldtrade.backend.entity.User;
 import com.goldtrade.backend.exception.ResourceNotFoundException;
-import com.goldtrade.backend.repository.HoldingRepository;
 import com.goldtrade.backend.repository.PortfolioRepository;
 import com.goldtrade.backend.repository.TransactionRepository;
 import com.goldtrade.backend.repository.UserRepository;
@@ -24,18 +23,15 @@ public class AdminInvestorController {
 
     private final UserRepository userRepo;
     private final PortfolioRepository portfolioRepo;
-    private final HoldingRepository holdingRepo;
     private final TransactionRepository transactionRepo;
     private final EmailService emailService;
 
     public AdminInvestorController(UserRepository userRepo,
                                     PortfolioRepository portfolioRepo,
-                                    HoldingRepository holdingRepo,
                                     TransactionRepository transactionRepo,
                                     EmailService emailService) {
         this.userRepo = userRepo;
         this.portfolioRepo = portfolioRepo;
-        this.holdingRepo = holdingRepo;
         this.transactionRepo = transactionRepo;
         this.emailService = emailService;
     }
@@ -58,7 +54,6 @@ public class AdminInvestorController {
         Portfolio portfolio = portfolioRepo.findByUserId(id).orElse(null);
         Map<String, Object> data = new java.util.HashMap<>(summary);
         if (portfolio != null) {
-            data.put("holdings", holdingRepo.findByPortfolioId(portfolio.getId()));
             data.put("transactions", transactionRepo.findByPortfolioIdOrderByOccurredAtDesc(portfolio.getId()));
         }
         return ResponseEntity.ok(ApiResponse.success(data));
@@ -101,13 +96,7 @@ public class AdminInvestorController {
 
     private Map<String, Object> toSummary(User customer) {
         Portfolio portfolio = portfolioRepo.findByUserId(customer.getId()).orElse(null);
-        BigDecimal totalValue = BigDecimal.ZERO;
-        if (portfolio != null) {
-            BigDecimal holdingsValue = holdingRepo.findByPortfolioId(portfolio.getId()).stream()
-                    .map(h -> h.getCurrentPrice().multiply(h.getQuantity()))
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            totalValue = holdingsValue.add(portfolio.getCashBalance());
-        }
+        BigDecimal totalValue = portfolio != null ? portfolio.getCashBalance() : BigDecimal.ZERO;
         Map<String, Object> map = new java.util.HashMap<>();
         map.put("id", customer.getId());
         map.put("email", customer.getEmail());

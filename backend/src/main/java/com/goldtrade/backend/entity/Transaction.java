@@ -22,7 +22,7 @@ public class Transaction {
     private String portfolioId;
 
     @Column(name = "type", nullable = false)
-    private String type; // "buy" | "sell" | "deposit" | "withdrawal" | "dividend"
+    private String type; // "deposit" | "withdrawal" | "referral_bonus" | "daily_profit"
 
     @Column(name = "description", nullable = false)
     private String description;

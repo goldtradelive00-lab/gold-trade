@@ -61,34 +61,6 @@ export default function AdminInvestorDetailPage() {
       </div>
 
       <div className="hairline-border rounded-xl bg-card p-6">
-        <h2 className="text-sm uppercase tracking-widest text-muted-foreground">Holdings</h2>
-        {!investor.holdings || investor.holdings.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">No holdings.</p>
-        ) : (
-          <Table className="mt-4">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Asset</TableHead>
-                <TableHead>Qty</TableHead>
-                <TableHead className="text-right">Value</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {investor.holdings.map((h) => (
-                <TableRow key={h.id}>
-                  <TableCell>
-                    {h.name} <span className="text-muted-foreground">({h.symbol})</span>
-                  </TableCell>
-                  <TableCell>{h.quantity}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(h.current_price * h.quantity)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </div>
-
-      <div className="hairline-border rounded-xl bg-card p-6">
         <h2 className="text-sm uppercase tracking-widest text-muted-foreground">Transactions</h2>
         {!investor.transactions || investor.transactions.length === 0 ? (
           <p className="mt-4 text-sm text-muted-foreground">No transactions.</p>

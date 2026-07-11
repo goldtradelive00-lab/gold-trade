@@ -1,21 +1,6 @@
 export type UserRole = "investor" | "admin";
 export type KycStatus = "pending" | "verified" | "rejected";
-export type AssetType =
-  | "equity"
-  | "etf"
-  | "bond"
-  | "real_estate"
-  | "private_equity"
-  | "cash"
-  | "other";
-export type TransactionType =
-  | "buy"
-  | "sell"
-  | "deposit"
-  | "withdrawal"
-  | "dividend"
-  | "referral_bonus"
-  | "daily_profit";
+export type TransactionType = "deposit" | "withdrawal" | "referral_bonus" | "daily_profit";
 export type PermissionLevel = "super_admin" | "compliance_officer" | "support";
 
 export interface SessionUser {
@@ -25,19 +10,6 @@ export interface SessionUser {
   role: UserRole;
   is_approved: boolean;
   referral_code?: string;
-}
-
-export interface Holding {
-  id: string;
-  portfolio_id: string;
-  symbol: string;
-  name: string;
-  asset_type: AssetType;
-  quantity: number;
-  avg_cost: number;
-  current_price: number;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface Transaction {
@@ -53,9 +25,7 @@ export interface PortfolioOverview {
   portfolio_id: string;
   cash_balance: number;
   principal_balance: number;
-  holdings_value: number;
   total_value: number;
-  holdings: Holding[];
 }
 
 export interface InvestorSummary {
@@ -72,7 +42,6 @@ export interface InvestorSummary {
 }
 
 export interface InvestorDetail extends InvestorSummary {
-  holdings?: Holding[];
   transactions?: Transaction[];
 }
 

@@ -1,12 +1,10 @@
 package com.goldtrade.backend.controller;
 
 import com.goldtrade.backend.dto.response.ApiResponse;
-import com.goldtrade.backend.entity.Holding;
 import com.goldtrade.backend.entity.Portfolio;
 import com.goldtrade.backend.entity.Transaction;
 import com.goldtrade.backend.entity.User;
 import com.goldtrade.backend.entity.WithdrawRequest;
-import com.goldtrade.backend.repository.HoldingRepository;
 import com.goldtrade.backend.repository.PortfolioRepository;
 import com.goldtrade.backend.repository.TransactionRepository;
 import com.goldtrade.backend.repository.UserRepository;
@@ -31,20 +29,17 @@ public class AdminFinanceController {
 
     private final TransactionRepository transactionRepo;
     private final PortfolioRepository portfolioRepo;
-    private final HoldingRepository holdingRepo;
     private final UserRepository userRepo;
     private final WithdrawRequestRepository withdrawRequestRepo;
     private final DailyProfitService dailyProfitService;
 
     public AdminFinanceController(TransactionRepository transactionRepo,
                                    PortfolioRepository portfolioRepo,
-                                   HoldingRepository holdingRepo,
                                    UserRepository userRepo,
                                    WithdrawRequestRepository withdrawRequestRepo,
                                    DailyProfitService dailyProfitService) {
         this.transactionRepo = transactionRepo;
         this.portfolioRepo = portfolioRepo;
-        this.holdingRepo = holdingRepo;
         this.userRepo = userRepo;
         this.withdrawRequestRepo = withdrawRequestRepo;
         this.dailyProfitService = dailyProfitService;
@@ -68,14 +63,11 @@ public class AdminFinanceController {
 
         BigDecimal deposits = sumByType(all, "deposit");
         BigDecimal withdrawals = sumByType(all, "withdrawal");
-        BigDecimal dividends = sumByType(all, "dividend");
-        BigDecimal buys = sumByType(all, "buy");
-        BigDecimal sells = sumByType(all, "sell");
         BigDecimal referralBonuses = sumByType(all, "referral_bonus");
         BigDecimal dailyProfits = sumByType(all, "daily_profit");
-        BigDecimal moneyIn = deposits.add(dividends).add(sells).add(referralBonuses).add(dailyProfits);
-        BigDecimal moneyOut = withdrawals.add(buys);
-        BigDecimal netFlow = deposits.add(dividends).add(referralBonuses).add(dailyProfits).subtract(withdrawals);
+        BigDecimal moneyIn = deposits.add(referralBonuses).add(dailyProfits);
+        BigDecimal moneyOut = withdrawals;
+        BigDecimal netFlow = moneyIn.subtract(withdrawals);
 
         List<WithdrawRequest> pending = withdrawRequestRepo.findAllByOrderByRequestedAtDesc().stream()
                 .filter(w -> "pending".equals(w.getStatus()))
@@ -88,25 +80,17 @@ public class AdminFinanceController {
         BigDecimal totalCash = portfolios.stream()
                 .map(Portfolio::getCashBalance)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalHoldingsValue = holdingRepo.findAll().stream()
-                .map(h -> h.getCurrentPrice().multiply(h.getQuantity()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalAum = totalCash.add(totalHoldingsValue);
 
         Map<String, Object> result = new HashMap<>();
         result.put("total_deposits", deposits);
         result.put("total_withdrawals", withdrawals);
-        result.put("total_dividends", dividends);
-        result.put("total_buys", buys);
-        result.put("total_sells", sells);
         result.put("total_referral_bonuses", referralBonuses);
         result.put("total_daily_profits", dailyProfits);
         result.put("money_in", moneyIn);
         result.put("money_out", moneyOut);
         result.put("net_flow", netFlow);
-        result.put("total_aum", totalAum);
+        result.put("total_aum", totalCash);
         result.put("total_cash_balance", totalCash);
-        result.put("total_holdings_value", totalHoldingsValue);
         result.put("pending_withdrawals_amount", pendingAmount);
         result.put("pending_withdrawals_count", pending.size());
         result.put("transaction_count", all.size());

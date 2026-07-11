@@ -3,7 +3,6 @@ package com.goldtrade.backend.controller;
 import com.goldtrade.backend.dto.response.ApiResponse;
 import com.goldtrade.backend.entity.AppSetting;
 import com.goldtrade.backend.entity.DepositRequest;
-import com.goldtrade.backend.entity.Holding;
 import com.goldtrade.backend.entity.Portfolio;
 import com.goldtrade.backend.entity.ReferralEarning;
 import com.goldtrade.backend.entity.Transaction;
@@ -13,7 +12,6 @@ import com.goldtrade.backend.exception.BadRequestException;
 import com.goldtrade.backend.exception.ResourceNotFoundException;
 import com.goldtrade.backend.repository.AppSettingRepository;
 import com.goldtrade.backend.repository.DepositRequestRepository;
-import com.goldtrade.backend.repository.HoldingRepository;
 import com.goldtrade.backend.repository.PortfolioRepository;
 import com.goldtrade.backend.repository.ReferralEarningRepository;
 import com.goldtrade.backend.repository.TransactionRepository;
@@ -35,7 +33,6 @@ public class PortfolioController {
     private static final String DEPOSIT_WHATSAPP_DEFAULT = "03001234567";
 
     private final PortfolioRepository portfolioRepo;
-    private final HoldingRepository holdingRepo;
     private final TransactionRepository transactionRepo;
     private final WithdrawRequestRepository withdrawRequestRepo;
     private final DepositRequestRepository depositRequestRepo;
@@ -44,7 +41,6 @@ public class PortfolioController {
     private final ReferralEarningRepository referralEarningRepo;
 
     public PortfolioController(PortfolioRepository portfolioRepo,
-                                HoldingRepository holdingRepo,
                                 TransactionRepository transactionRepo,
                                 WithdrawRequestRepository withdrawRequestRepo,
                                 DepositRequestRepository depositRequestRepo,
@@ -52,7 +48,6 @@ public class PortfolioController {
                                 UserRepository userRepo,
                                 ReferralEarningRepository referralEarningRepo) {
         this.portfolioRepo = portfolioRepo;
-        this.holdingRepo = holdingRepo;
         this.transactionRepo = transactionRepo;
         this.withdrawRequestRepo = withdrawRequestRepo;
         this.depositRequestRepo = depositRequestRepo;
@@ -68,19 +63,11 @@ public class PortfolioController {
         Portfolio portfolio = portfolioRepo.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Portfolio not found"));
 
-        List<Holding> holdings = holdingRepo.findByPortfolioId(portfolio.getId());
-        BigDecimal holdingsValue = holdings.stream()
-                .map(h -> h.getCurrentPrice().multiply(h.getQuantity()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalValue = holdingsValue.add(portfolio.getCashBalance());
-
         return ResponseEntity.ok(ApiResponse.success(Map.of(
                 "portfolio_id", portfolio.getId(),
                 "cash_balance", portfolio.getCashBalance(),
                 "principal_balance", portfolio.getPrincipalBalance(),
-                "holdings_value", holdingsValue,
-                "total_value", totalValue,
-                "holdings", holdings
+                "total_value", portfolio.getCashBalance()
         )));
     }
 

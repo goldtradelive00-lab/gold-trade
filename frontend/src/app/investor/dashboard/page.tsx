@@ -19,11 +19,8 @@ import {
 } from "@/components/ui/table";
 
 const TX_BADGE: Record<string, string> = {
-  buy: "bg-secondary text-secondary-foreground",
-  sell: "bg-destructive text-destructive-foreground",
   deposit: "bg-primary text-primary-foreground",
   withdrawal: "bg-secondary text-secondary-foreground",
-  dividend: "bg-secondary text-secondary-foreground",
   referral_bonus: "bg-primary text-primary-foreground",
   daily_profit: "bg-primary text-primary-foreground",
 };
@@ -54,14 +51,10 @@ export default function InvestorDashboardPage() {
         <p className="font-serif-display mt-2 text-4xl text-primary">
           {formatCurrency(portfolio.total_value)}
         </p>
-        <div className="mt-6 grid grid-cols-2 gap-6 text-sm md:grid-cols-3">
+        <div className="mt-6 grid grid-cols-2 gap-6 text-sm">
           <div>
             <p className="text-muted-foreground">Cash Balance</p>
             <p className="mt-1 text-foreground">{formatCurrency(portfolio.cash_balance)}</p>
-          </div>
-          <div>
-            <p className="text-muted-foreground">Holdings Value</p>
-            <p className="mt-1 text-foreground">{formatCurrency(portfolio.holdings_value)}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Principal (earns 1% daily)</p>
