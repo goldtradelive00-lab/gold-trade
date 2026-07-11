@@ -203,7 +203,7 @@ export default function WithdrawPage() {
               business days.
             </DialogDescription>
           </DialogHeader>
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-4">
             <div className="space-y-2">
               <Label htmlFor="amount">Amount (PKR)</Label>
               <Input

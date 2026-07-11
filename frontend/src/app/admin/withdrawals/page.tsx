@@ -146,7 +146,7 @@ export default function AdminWithdrawalsPage() {
             <DialogDescription>Full submission details for review.</DialogDescription>
           </DialogHeader>
           {viewing && (
-            <div className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-1">
+            <div className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-4">
               <DetailRow label="Investor" value={viewing.customer} />
               <DetailRow label="Email" value={viewing.email} />
               <DetailRow label="Phone" value={viewing.phone_number || "—"} />
