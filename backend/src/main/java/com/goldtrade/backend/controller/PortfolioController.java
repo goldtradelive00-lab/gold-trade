@@ -1,6 +1,7 @@
 package com.goldtrade.backend.controller;
 
 import com.goldtrade.backend.dto.response.ApiResponse;
+import com.goldtrade.backend.entity.AppSetting;
 import com.goldtrade.backend.entity.DepositRequest;
 import com.goldtrade.backend.entity.Holding;
 import com.goldtrade.backend.entity.Portfolio;
@@ -8,6 +9,7 @@ import com.goldtrade.backend.entity.Transaction;
 import com.goldtrade.backend.entity.WithdrawRequest;
 import com.goldtrade.backend.exception.BadRequestException;
 import com.goldtrade.backend.exception.ResourceNotFoundException;
+import com.goldtrade.backend.repository.AppSettingRepository;
 import com.goldtrade.backend.repository.DepositRequestRepository;
 import com.goldtrade.backend.repository.HoldingRepository;
 import com.goldtrade.backend.repository.PortfolioRepository;
@@ -25,22 +27,28 @@ import java.util.Map;
 @RequestMapping("/api/portfolio")
 public class PortfolioController {
 
+    private static final String DEPOSIT_WHATSAPP_KEY = "deposit_whatsapp_number";
+    private static final String DEPOSIT_WHATSAPP_DEFAULT = "03001234567";
+
     private final PortfolioRepository portfolioRepo;
     private final HoldingRepository holdingRepo;
     private final TransactionRepository transactionRepo;
     private final WithdrawRequestRepository withdrawRequestRepo;
     private final DepositRequestRepository depositRequestRepo;
+    private final AppSettingRepository settingRepo;
 
     public PortfolioController(PortfolioRepository portfolioRepo,
                                 HoldingRepository holdingRepo,
                                 TransactionRepository transactionRepo,
                                 WithdrawRequestRepository withdrawRequestRepo,
-                                DepositRequestRepository depositRequestRepo) {
+                                DepositRequestRepository depositRequestRepo,
+                                AppSettingRepository settingRepo) {
         this.portfolioRepo = portfolioRepo;
         this.holdingRepo = holdingRepo;
         this.transactionRepo = transactionRepo;
         this.withdrawRequestRepo = withdrawRequestRepo;
         this.depositRequestRepo = depositRequestRepo;
+        this.settingRepo = settingRepo;
     }
 
     // GET /api/portfolio — current investor's overview
@@ -101,6 +109,12 @@ public class PortfolioController {
         String bankName = requireText(body.get("bank_name"), "Select a bank or wallet");
         String accountTitle = requireText(body.get("account_title"), "Enter the account title");
         String accountNumber = requireText(body.get("account_number"), "Enter the account number or IBAN");
+        String senderWhatsapp = requireText(body.get("sender_whatsapp"),
+                "Enter the WhatsApp number you used to send the receipt");
+
+        String adminWhatsapp = settingRepo.findById(DEPOSIT_WHATSAPP_KEY)
+                .map(AppSetting::getValue)
+                .orElse(DEPOSIT_WHATSAPP_DEFAULT);
 
         DepositRequest request = new DepositRequest();
         request.setUserId(userId);
@@ -108,6 +122,8 @@ public class PortfolioController {
         request.setBankName(bankName);
         request.setAccountTitle(accountTitle);
         request.setAccountNumber(accountNumber);
+        request.setSenderWhatsapp(senderWhatsapp);
+        request.setAdminWhatsappNumber(adminWhatsapp);
         request.setStatus("pending");
         depositRequestRepo.save(request);
 

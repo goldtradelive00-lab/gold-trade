@@ -1,12 +1,14 @@
 package com.goldtrade.backend.controller;
 
 import com.goldtrade.backend.dto.response.ApiResponse;
+import com.goldtrade.backend.entity.Admin;
 import com.goldtrade.backend.entity.DepositRequest;
 import com.goldtrade.backend.entity.Portfolio;
 import com.goldtrade.backend.entity.Transaction;
 import com.goldtrade.backend.entity.User;
 import com.goldtrade.backend.exception.BadRequestException;
 import com.goldtrade.backend.exception.ResourceNotFoundException;
+import com.goldtrade.backend.repository.AdminRepository;
 import com.goldtrade.backend.repository.DepositRequestRepository;
 import com.goldtrade.backend.repository.PortfolioRepository;
 import com.goldtrade.backend.repository.TransactionRepository;
@@ -28,15 +30,18 @@ public class AdminDepositController {
     private final PortfolioRepository portfolioRepo;
     private final TransactionRepository transactionRepo;
     private final UserRepository userRepo;
+    private final AdminRepository adminRepo;
 
     public AdminDepositController(DepositRequestRepository depositRequestRepo,
                                    PortfolioRepository portfolioRepo,
                                    TransactionRepository transactionRepo,
-                                   UserRepository userRepo) {
+                                   UserRepository userRepo,
+                                   AdminRepository adminRepo) {
         this.depositRequestRepo = depositRequestRepo;
         this.portfolioRepo = portfolioRepo;
         this.transactionRepo = transactionRepo;
         this.userRepo = userRepo;
+        this.adminRepo = adminRepo;
     }
 
     // GET /api/admin/deposit-requests
@@ -96,16 +101,24 @@ public class AdminDepositController {
 
     private Map<String, Object> toRow(DepositRequest request) {
         User investor = userRepo.findById(request.getUserId()).orElse(null);
+        Admin reviewer = request.getReviewedBy() != null
+                ? adminRepo.findById(request.getReviewedBy()).orElse(null)
+                : null;
         Map<String, Object> map = new java.util.HashMap<>();
         map.put("id", request.getId());
         map.put("customer", investor != null ? investor.getFullName() : "Unknown");
         map.put("email", investor != null ? investor.getEmail() : "");
+        map.put("phone_number", investor != null ? investor.getPhoneNumber() : "");
         map.put("amount", request.getAmount());
         map.put("bank_name", request.getBankName());
         map.put("account_title", request.getAccountTitle());
         map.put("account_number", request.getAccountNumber());
+        map.put("sender_whatsapp", request.getSenderWhatsapp());
+        map.put("admin_whatsapp_number", request.getAdminWhatsappNumber());
         map.put("status", request.getStatus());
         map.put("requested_at", request.getRequestedAt());
+        map.put("reviewed_at", request.getReviewedAt());
+        map.put("reviewed_by_name", reviewer != null ? reviewer.getFullName() : null);
         return map;
     }
 }

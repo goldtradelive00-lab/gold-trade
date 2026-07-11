@@ -53,7 +53,14 @@ const STATUS_BADGE: Record<DepositRequestRow["status"], string> = {
   rejected: "bg-destructive text-destructive-foreground",
 };
 
-const emptyForm = { amount: "", bank: "", accountTitle: "", accountNumber: "" };
+const emptyForm = {
+  amount: "",
+  bank: "",
+  otherBank: "",
+  accountTitle: "",
+  accountNumber: "",
+  senderWhatsapp: "",
+};
 
 export default function DepositPage() {
   const queryClient = useQueryClient();
@@ -95,6 +102,10 @@ export default function DepositPage() {
       toast.error("Select a bank or wallet");
       return;
     }
+    if (form.bank === "Other" && !form.otherBank.trim()) {
+      toast.error("Enter the name of your bank or wallet");
+      return;
+    }
     if (!form.accountTitle.trim()) {
       toast.error("Enter the account title");
       return;
@@ -113,13 +124,18 @@ export default function DepositPage() {
   };
 
   const submit = async () => {
+    if (!form.senderWhatsapp.trim()) {
+      toast.error("Enter the WhatsApp number you used to send the receipt");
+      return;
+    }
     setSubmitting(true);
     try {
       await api.post("/api/portfolio/deposit-requests", {
         amount: parseFloat(form.amount),
-        bank_name: form.bank,
+        bank_name: form.bank === "Other" ? form.otherBank.trim() : form.bank,
         account_title: form.accountTitle,
         account_number: form.accountNumber,
+        sender_whatsapp: form.senderWhatsapp,
       });
       toast.success("Deposit request submitted — please allow up to 24 hours for approval.");
       queryClient.invalidateQueries({ queryKey: ["portfolio", "deposit-requests"] });
@@ -227,6 +243,14 @@ export default function DepositPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {form.bank === "Other" && (
+                    <Input
+                      className="mt-2"
+                      placeholder="Enter the name of your bank or wallet"
+                      value={form.otherBank}
+                      onChange={(e) => setForm((f) => ({ ...f, otherBank: e.target.value }))}
+                    />
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="account_title">Account Title</Label>
@@ -276,6 +300,18 @@ export default function DepositPage() {
                   <Button variant="outline" size="icon" onClick={copyWhatsapp}>
                     <Copy className="size-4" />
                   </Button>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sender_whatsapp">
+                    Your WhatsApp Number (used to send the receipt)
+                  </Label>
+                  <Input
+                    id="sender_whatsapp"
+                    type="tel"
+                    placeholder="03xx xxxxxxx"
+                    value={form.senderWhatsapp}
+                    onChange={(e) => setForm((f) => ({ ...f, senderWhatsapp: e.target.value }))}
+                  />
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Once you submit this request, please allow up to 24 hours for our team to

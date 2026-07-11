@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
@@ -7,6 +8,14 @@ import { formatCurrency, getErrorMessage } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -22,11 +31,16 @@ interface DepositRequestRow {
   id: string;
   customer: string;
   email: string;
+  phone_number: string | null;
   amount: number;
   bank_name: string;
   account_title: string;
   account_number: string;
+  sender_whatsapp: string;
+  admin_whatsapp_number: string;
   requested_at: string;
+  reviewed_at: string | null;
+  reviewed_by_name: string | null;
   status: RequestStatus;
 }
 
@@ -36,8 +50,18 @@ const STATUS_BADGE: Record<RequestStatus, string> = {
   rejected: "bg-destructive text-destructive-foreground",
 };
 
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between border-b border-border py-2 text-sm last:border-0">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-right text-foreground">{value}</span>
+    </div>
+  );
+}
+
 export default function AdminDepositRequestsPage() {
   const queryClient = useQueryClient();
+  const [viewing, setViewing] = useState<DepositRequestRow | null>(null);
   const { data: requests, isLoading } = useQuery({
     queryKey: ["admin", "deposit-requests"],
     queryFn: () => api.get<DepositRequestRow[]>("/api/admin/deposit-requests"),
@@ -48,6 +72,7 @@ export default function AdminDepositRequestsPage() {
       await api.post(`/api/admin/deposit-requests/${id}/${action}`);
       toast.success(action === "approve" ? "Deposit approved" : "Deposit rejected");
       queryClient.invalidateQueries({ queryKey: ["admin", "deposit-requests"] });
+      setViewing(null);
     } catch (err) {
       toast.error(getErrorMessage(err));
     }
@@ -77,7 +102,6 @@ export default function AdminDepositRequestsPage() {
               <TableRow>
                 <TableHead>Investor</TableHead>
                 <TableHead>Bank / Wallet</TableHead>
-                <TableHead>Sender Account</TableHead>
                 <TableHead>Requested</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
@@ -92,10 +116,6 @@ export default function AdminDepositRequestsPage() {
                     <p className="text-xs text-muted-foreground">{r.email}</p>
                   </TableCell>
                   <TableCell className="text-muted-foreground">{r.bank_name}</TableCell>
-                  <TableCell>
-                    <p className="text-foreground">{r.account_title}</p>
-                    <p className="text-xs text-muted-foreground">{r.account_number}</p>
-                  </TableCell>
                   <TableCell className="text-muted-foreground">
                     {new Date(r.requested_at).toLocaleDateString()}
                   </TableCell>
@@ -106,16 +126,21 @@ export default function AdminDepositRequestsPage() {
                     {formatCurrency(r.amount)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {r.status === "pending" && (
-                      <div className="flex justify-end gap-2">
-                        <Button size="sm" onClick={() => review(r.id, "approve")}>
-                          Approve
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => review(r.id, "reject")}>
-                          Reject
-                        </Button>
-                      </div>
-                    )}
+                    <div className="flex justify-end gap-2">
+                      <Button size="sm" variant="outline" onClick={() => setViewing(r)}>
+                        View
+                      </Button>
+                      {r.status === "pending" && (
+                        <>
+                          <Button size="sm" onClick={() => review(r.id, "approve")}>
+                            Approve
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => review(r.id, "reject")}>
+                            Reject
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -123,6 +148,52 @@ export default function AdminDepositRequestsPage() {
           </Table>
         )}
       </div>
+
+      <Dialog open={!!viewing} onOpenChange={(v) => !v && setViewing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Deposit Request</DialogTitle>
+            <DialogDescription>Full submission details for review.</DialogDescription>
+          </DialogHeader>
+          {viewing && (
+            <div className="space-y-1">
+              <DetailRow label="Investor" value={viewing.customer} />
+              <DetailRow label="Email" value={viewing.email} />
+              <DetailRow label="Phone" value={viewing.phone_number || "—"} />
+              <DetailRow
+                label="Amount"
+                value={<span className="font-serif-display text-primary">{formatCurrency(viewing.amount)}</span>}
+              />
+              <DetailRow label="Bank / Wallet" value={viewing.bank_name} />
+              <DetailRow label="Account Title" value={viewing.account_title} />
+              <DetailRow label="Account Number / IBAN" value={viewing.account_number} />
+              <DetailRow label="Sender's WhatsApp" value={viewing.sender_whatsapp} />
+              <DetailRow label="Admin WhatsApp Shown" value={viewing.admin_whatsapp_number} />
+              <DetailRow label="Requested" value={new Date(viewing.requested_at).toLocaleString()} />
+              <DetailRow
+                label="Status"
+                value={<Badge className={STATUS_BADGE[viewing.status]}>{viewing.status.toUpperCase()}</Badge>}
+              />
+              {viewing.reviewed_at && (
+                <>
+                  <DetailRow label="Reviewed By" value={viewing.reviewed_by_name || "—"} />
+                  <DetailRow label="Reviewed At" value={new Date(viewing.reviewed_at).toLocaleString()} />
+                </>
+              )}
+            </div>
+          )}
+          {viewing?.status === "pending" && (
+            <DialogFooter>
+              <Button variant="outline" className="w-full sm:w-auto" onClick={() => review(viewing.id, "reject")}>
+                Reject
+              </Button>
+              <Button className="w-full sm:w-auto" onClick={() => review(viewing.id, "approve")}>
+                Approve
+              </Button>
+            </DialogFooter>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

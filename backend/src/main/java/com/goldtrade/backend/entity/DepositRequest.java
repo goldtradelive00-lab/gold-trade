@@ -33,6 +33,12 @@ public class DepositRequest {
     @Column(name = "account_number", nullable = false)
     private String accountNumber;
 
+    @Column(name = "sender_whatsapp", nullable = false)
+    private String senderWhatsapp;
+
+    @Column(name = "admin_whatsapp_number")
+    private String adminWhatsappNumber;
+
     @Column(name = "status", nullable = false)
     private String status = "pending";
 
