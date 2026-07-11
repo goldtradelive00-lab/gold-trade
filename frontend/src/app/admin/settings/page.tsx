@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { ChangePasswordDialog } from "@/components/settings/change-password-dialog";
 import { useAuthStore } from "@/stores/auth-store";
 
 export default function AdminSettingsPage() {
@@ -59,6 +60,13 @@ export default function AdminSettingsPage() {
               Contact a super admin to change your login email.
             </p>
           </div>
+        </div>
+      </div>
+
+      <div className="hairline-border rounded-xl bg-card p-6">
+        <h2 className="text-sm uppercase tracking-widest text-muted-foreground">Security</h2>
+        <div className="mt-4">
+          <ChangePasswordDialog />
         </div>
       </div>
 

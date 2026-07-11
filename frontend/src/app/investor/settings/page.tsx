@@ -7,35 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
-import { api } from "@/lib/api";
+import { ChangePasswordDialog } from "@/components/settings/change-password-dialog";
 import { clearAccessToken } from "@/lib/session";
 import { useAuthStore } from "@/stores/auth-store";
-import { getErrorMessage } from "@/lib/utils";
 
 export default function InvestorSettingsPage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const [statementEmails, setStatementEmails] = useState(true);
   const [activityAlerts, setActivityAlerts] = useState(true);
-  const [sendingReset, setSendingReset] = useState(false);
 
   const saveProfile = () => {
     // Persist profile fields via the backend once the endpoint is wired up.
     toast.success("Settings saved");
-  };
-
-  const sendPasswordReset = async () => {
-    if (!user?.email) return;
-    setSendingReset(true);
-    try {
-      await api.post("/api/auth/forgot-password", { email: user.email });
-      toast.success("Password reset link sent to your email");
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    } finally {
-      setSendingReset(false);
-    }
   };
 
   const logOut = () => {
@@ -83,17 +67,11 @@ export default function InvestorSettingsPage() {
       <div className="hairline-border rounded-xl bg-card p-6">
         <h2 className="text-sm uppercase tracking-widest text-muted-foreground">Security</h2>
         <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-          <Button variant="outline" onClick={sendPasswordReset} disabled={sendingReset}>
-            {sendingReset ? "Sending..." : "Change Password"}
-          </Button>
+          <ChangePasswordDialog />
           <Button variant="outline" onClick={logOut}>
             Log Out
           </Button>
         </div>
-        <Separator className="my-4" />
-        <p className="text-xs text-muted-foreground">
-          Changing your password sends a secure reset link to your registered email.
-        </p>
       </div>
     </div>
   );

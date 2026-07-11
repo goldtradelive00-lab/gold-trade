@@ -189,6 +189,34 @@ public class AuthController {
         )));
     }
 
+    // PUT /api/auth/change-password — investor or admin changes their own password while logged in
+    @PutMapping("/change-password")
+    public ResponseEntity<ApiResponse<?>> changePassword(@RequestBody Map<String, Object> body, Authentication auth) {
+        String newPassword = (String) body.get("new_password");
+        if (newPassword == null || newPassword.length() < 8) {
+            throw new BadRequestException("New password must be at least 8 characters");
+        }
+
+        String id = (String) auth.getPrincipal();
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        String encoded = passwordEncoder.encode(newPassword);
+
+        if (isAdmin) {
+            Admin admin = adminRepo.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Profile not found"));
+            admin.setPasswordHash(encoded);
+            adminRepo.save(admin);
+        } else {
+            User user = userRepo.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Profile not found"));
+            user.setPasswordHash(encoded);
+            userRepo.save(user);
+        }
+
+        return ResponseEntity.ok(ApiResponse.success(null, "Password updated successfully"));
+    }
+
     // POST /api/auth/send-verification
     @PostMapping("/send-verification")
     public ResponseEntity<ApiResponse<?>> sendVerification(@RequestBody Map<String, Object> body) {
