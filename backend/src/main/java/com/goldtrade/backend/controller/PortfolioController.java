@@ -1,12 +1,14 @@
 package com.goldtrade.backend.controller;
 
 import com.goldtrade.backend.dto.response.ApiResponse;
+import com.goldtrade.backend.entity.DepositRequest;
 import com.goldtrade.backend.entity.Holding;
 import com.goldtrade.backend.entity.Portfolio;
 import com.goldtrade.backend.entity.Transaction;
 import com.goldtrade.backend.entity.WithdrawRequest;
 import com.goldtrade.backend.exception.BadRequestException;
 import com.goldtrade.backend.exception.ResourceNotFoundException;
+import com.goldtrade.backend.repository.DepositRequestRepository;
 import com.goldtrade.backend.repository.HoldingRepository;
 import com.goldtrade.backend.repository.PortfolioRepository;
 import com.goldtrade.backend.repository.TransactionRepository;
@@ -27,15 +29,18 @@ public class PortfolioController {
     private final HoldingRepository holdingRepo;
     private final TransactionRepository transactionRepo;
     private final WithdrawRequestRepository withdrawRequestRepo;
+    private final DepositRequestRepository depositRequestRepo;
 
     public PortfolioController(PortfolioRepository portfolioRepo,
                                 HoldingRepository holdingRepo,
                                 TransactionRepository transactionRepo,
-                                WithdrawRequestRepository withdrawRequestRepo) {
+                                WithdrawRequestRepository withdrawRequestRepo,
+                                DepositRequestRepository depositRequestRepo) {
         this.portfolioRepo = portfolioRepo;
         this.holdingRepo = holdingRepo;
         this.transactionRepo = transactionRepo;
         this.withdrawRequestRepo = withdrawRequestRepo;
+        this.depositRequestRepo = depositRequestRepo;
     }
 
     // GET /api/portfolio — current investor's overview
@@ -79,27 +84,42 @@ public class PortfolioController {
         return ResponseEntity.ok(ApiResponse.success(requests));
     }
 
-    // POST /api/portfolio/deposits — instant credit (no approval needed)
-    @PostMapping("/deposits")
-    public ResponseEntity<ApiResponse<?>> deposit(@RequestBody Map<String, Object> body, Authentication auth) {
+    // GET /api/portfolio/deposit-requests — current investor's own deposit request history
+    @GetMapping("/deposit-requests")
+    public ResponseEntity<ApiResponse<?>> getMyDepositRequests(Authentication auth) {
+        String userId = (String) auth.getPrincipal();
+        List<DepositRequest> requests = depositRequestRepo.findByUserIdOrderByRequestedAtDesc(userId);
+        return ResponseEntity.ok(ApiResponse.success(requests));
+    }
+
+    // POST /api/portfolio/deposit-requests — submits a request for admin review once the
+    // investor has sent a receipt via WhatsApp; cash is only credited on approval
+    @PostMapping("/deposit-requests")
+    public ResponseEntity<ApiResponse<?>> requestDeposit(@RequestBody Map<String, Object> body, Authentication auth) {
         String userId = (String) auth.getPrincipal();
         BigDecimal amount = toAmount(body.get("amount"));
-        String method = body.getOrDefault("method", "bank_transfer").toString();
+        String bankName = requireText(body.get("bank_name"), "Select a bank or wallet");
+        String accountTitle = requireText(body.get("account_title"), "Enter the account title");
+        String accountNumber = requireText(body.get("account_number"), "Enter the account number or IBAN");
 
-        Portfolio portfolio = portfolioRepo.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Portfolio not found"));
+        DepositRequest request = new DepositRequest();
+        request.setUserId(userId);
+        request.setAmount(amount);
+        request.setBankName(bankName);
+        request.setAccountTitle(accountTitle);
+        request.setAccountNumber(accountNumber);
+        request.setStatus("pending");
+        depositRequestRepo.save(request);
 
-        portfolio.setCashBalance(portfolio.getCashBalance().add(amount));
-        portfolioRepo.save(portfolio);
+        return ResponseEntity.ok(ApiResponse.success(null, "Deposit request submitted for review"));
+    }
 
-        Transaction tx = new Transaction();
-        tx.setPortfolioId(portfolio.getId());
-        tx.setType("deposit");
-        tx.setDescription("Deposit via " + method.replace('_', ' '));
-        tx.setAmount(amount);
-        transactionRepo.save(tx);
-
-        return ResponseEntity.ok(ApiResponse.success(null, "Deposit received"));
+    private String requireText(Object raw, String errorMessage) {
+        String value = raw == null ? "" : raw.toString().trim();
+        if (value.isEmpty()) {
+            throw new BadRequestException(errorMessage);
+        }
+        return value;
     }
 
     // POST /api/portfolio/withdrawals — submits a request for admin review

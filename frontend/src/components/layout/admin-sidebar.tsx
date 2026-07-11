@@ -2,13 +2,22 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, ArrowUpFromLine, Users, Wallet, Settings, LogOut } from "lucide-react";
+import {
+  LayoutDashboard,
+  ArrowUpFromLine,
+  ArrowDownToLine,
+  Users,
+  Wallet,
+  Settings,
+  LogOut,
+} from "lucide-react";
 import { clearAccessToken } from "@/lib/session";
 import { cn } from "@/lib/utils";
 
 const nav = [
   { name: "Dashboard", href: "/admin/overview", icon: LayoutDashboard },
   { name: "Finance", href: "/admin/finance", icon: Wallet },
+  { name: "Deposit Requests", href: "/admin/deposit-requests", icon: ArrowDownToLine },
   { name: "Withdraw Requests", href: "/admin/withdrawals", icon: ArrowUpFromLine },
   { name: "Investors", href: "/admin/investors", icon: Users },
   { name: "Settings", href: "/admin/settings", icon: Settings },

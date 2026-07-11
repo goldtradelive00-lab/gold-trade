@@ -1,0 +1,111 @@
+package com.goldtrade.backend.controller;
+
+import com.goldtrade.backend.dto.response.ApiResponse;
+import com.goldtrade.backend.entity.DepositRequest;
+import com.goldtrade.backend.entity.Portfolio;
+import com.goldtrade.backend.entity.Transaction;
+import com.goldtrade.backend.entity.User;
+import com.goldtrade.backend.exception.BadRequestException;
+import com.goldtrade.backend.exception.ResourceNotFoundException;
+import com.goldtrade.backend.repository.DepositRequestRepository;
+import com.goldtrade.backend.repository.PortfolioRepository;
+import com.goldtrade.backend.repository.TransactionRepository;
+import com.goldtrade.backend.repository.UserRepository;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/admin/deposit-requests")
+public class AdminDepositController {
+
+    private final DepositRequestRepository depositRequestRepo;
+    private final PortfolioRepository portfolioRepo;
+    private final TransactionRepository transactionRepo;
+    private final UserRepository userRepo;
+
+    public AdminDepositController(DepositRequestRepository depositRequestRepo,
+                                   PortfolioRepository portfolioRepo,
+                                   TransactionRepository transactionRepo,
+                                   UserRepository userRepo) {
+        this.depositRequestRepo = depositRequestRepo;
+        this.portfolioRepo = portfolioRepo;
+        this.transactionRepo = transactionRepo;
+        this.userRepo = userRepo;
+    }
+
+    // GET /api/admin/deposit-requests
+    @GetMapping
+    public ResponseEntity<ApiResponse<?>> list() {
+        List<DepositRequest> requests = depositRequestRepo.findAllByOrderByRequestedAtDesc();
+        List<Map<String, Object>> result = requests.stream().map(this::toRow).toList();
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    // POST /api/admin/deposit-requests/{id}/approve — credits cash and logs a transaction
+    @PostMapping("/{id}/approve")
+    public ResponseEntity<ApiResponse<?>> approve(@PathVariable String id, Authentication auth) {
+        DepositRequest request = depositRequestRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Deposit request not found"));
+        if (!"pending".equals(request.getStatus())) {
+            throw new BadRequestException("This request has already been reviewed");
+        }
+
+        Portfolio portfolio = portfolioRepo.findByUserId(request.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("Portfolio not found"));
+
+        portfolio.setCashBalance(portfolio.getCashBalance().add(request.getAmount()));
+        portfolioRepo.save(portfolio);
+
+        Transaction tx = new Transaction();
+        tx.setPortfolioId(portfolio.getId());
+        tx.setType("deposit");
+        tx.setDescription("Deposit via " + request.getBankName());
+        tx.setAmount(request.getAmount());
+        transactionRepo.save(tx);
+
+        request.setStatus("approved");
+        request.setReviewedBy((String) auth.getPrincipal());
+        request.setReviewedAt(OffsetDateTime.now(ZoneOffset.UTC));
+        depositRequestRepo.save(request);
+
+        return ResponseEntity.ok(ApiResponse.success(null, "Deposit approved"));
+    }
+
+    // POST /api/admin/deposit-requests/{id}/reject
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<ApiResponse<?>> reject(@PathVariable String id, Authentication auth) {
+        DepositRequest request = depositRequestRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Deposit request not found"));
+        if (!"pending".equals(request.getStatus())) {
+            throw new BadRequestException("This request has already been reviewed");
+        }
+
+        request.setStatus("rejected");
+        request.setReviewedBy((String) auth.getPrincipal());
+        request.setReviewedAt(OffsetDateTime.now(ZoneOffset.UTC));
+        depositRequestRepo.save(request);
+
+        return ResponseEntity.ok(ApiResponse.success(null, "Deposit rejected"));
+    }
+
+    private Map<String, Object> toRow(DepositRequest request) {
+        User investor = userRepo.findById(request.getUserId()).orElse(null);
+        Map<String, Object> map = new java.util.HashMap<>();
+        map.put("id", request.getId());
+        map.put("customer", investor != null ? investor.getFullName() : "Unknown");
+        map.put("email", investor != null ? investor.getEmail() : "");
+        map.put("amount", request.getAmount());
+        map.put("bank_name", request.getBankName());
+        map.put("account_title", request.getAccountTitle());
+        map.put("account_number", request.getAccountNumber());
+        map.put("status", request.getStatus());
+        map.put("requested_at", request.getRequestedAt());
+        return map;
+    }
+}
