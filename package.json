@@ -1,0 +1,15 @@
+{
+  "name": "goldtrade",
+  "version": "0.1.0",
+  "private": true,
+  "description": "GoldTrade — private wealth management platform (investor dashboard + admin back office)",
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd frontend && npm start",
+    "install:all": "cd frontend && npm install"
+  },
+  "keywords": ["wealth-management", "fintech", "nextjs", "spring-boot"],
+  "author": "",
+  "license": "ISC"
+}
