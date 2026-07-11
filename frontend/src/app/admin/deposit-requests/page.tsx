@@ -8,6 +8,7 @@ import { formatCurrency, getErrorMessage } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DetailRow } from "@/components/admin/detail-row";
 import {
   Dialog,
   DialogContent,
@@ -49,15 +50,6 @@ const STATUS_BADGE: Record<RequestStatus, string> = {
   approved: "bg-primary text-primary-foreground",
   rejected: "bg-destructive text-destructive-foreground",
 };
-
-function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between border-b border-border py-2 text-sm last:border-0">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="text-right text-foreground">{value}</span>
-    </div>
-  );
-}
 
 export default function AdminDepositRequestsPage() {
   const queryClient = useQueryClient();

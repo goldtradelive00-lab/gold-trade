@@ -1,12 +1,14 @@
 package com.goldtrade.backend.controller;
 
 import com.goldtrade.backend.dto.response.ApiResponse;
+import com.goldtrade.backend.entity.Admin;
 import com.goldtrade.backend.entity.Portfolio;
 import com.goldtrade.backend.entity.Transaction;
 import com.goldtrade.backend.entity.User;
 import com.goldtrade.backend.entity.WithdrawRequest;
 import com.goldtrade.backend.exception.BadRequestException;
 import com.goldtrade.backend.exception.ResourceNotFoundException;
+import com.goldtrade.backend.repository.AdminRepository;
 import com.goldtrade.backend.repository.PortfolioRepository;
 import com.goldtrade.backend.repository.TransactionRepository;
 import com.goldtrade.backend.repository.UserRepository;
@@ -28,15 +30,18 @@ public class AdminWithdrawalController {
     private final PortfolioRepository portfolioRepo;
     private final TransactionRepository transactionRepo;
     private final UserRepository userRepo;
+    private final AdminRepository adminRepo;
 
     public AdminWithdrawalController(WithdrawRequestRepository withdrawRequestRepo,
                                       PortfolioRepository portfolioRepo,
                                       TransactionRepository transactionRepo,
-                                      UserRepository userRepo) {
+                                      UserRepository userRepo,
+                                      AdminRepository adminRepo) {
         this.withdrawRequestRepo = withdrawRequestRepo;
         this.portfolioRepo = portfolioRepo;
         this.transactionRepo = transactionRepo;
         this.userRepo = userRepo;
+        this.adminRepo = adminRepo;
     }
 
     // GET /api/admin/withdrawals
@@ -68,7 +73,7 @@ public class AdminWithdrawalController {
         Transaction tx = new Transaction();
         tx.setPortfolioId(portfolio.getId());
         tx.setType("withdrawal");
-        tx.setDescription("Withdrawal via " + request.getMethod().replace('_', ' '));
+        tx.setDescription("Withdrawal via " + (request.getBankName() != null ? request.getBankName() : request.getMethod()));
         tx.setAmount(request.getAmount());
         transactionRepo.save(tx);
 
@@ -99,14 +104,22 @@ public class AdminWithdrawalController {
 
     private Map<String, Object> toRow(WithdrawRequest request) {
         User customer = userRepo.findById(request.getUserId()).orElse(null);
+        Admin reviewer = request.getReviewedBy() != null
+                ? adminRepo.findById(request.getReviewedBy()).orElse(null)
+                : null;
         Map<String, Object> map = new java.util.HashMap<>();
         map.put("id", request.getId());
         map.put("customer", customer != null ? customer.getFullName() : "Unknown");
         map.put("email", customer != null ? customer.getEmail() : "");
+        map.put("phone_number", customer != null ? customer.getPhoneNumber() : "");
         map.put("amount", request.getAmount());
-        map.put("method", request.getMethod());
+        map.put("bank_name", request.getBankName() != null ? request.getBankName() : request.getMethod());
+        map.put("account_title", request.getAccountTitle());
+        map.put("account_number", request.getAccountNumber());
         map.put("status", request.getStatus());
         map.put("requested_at", request.getRequestedAt());
+        map.put("reviewed_at", request.getReviewedAt());
+        map.put("reviewed_by_name", reviewer != null ? reviewer.getFullName() : null);
         return map;
     }
 }

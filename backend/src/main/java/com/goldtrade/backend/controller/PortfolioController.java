@@ -143,7 +143,9 @@ public class PortfolioController {
     public ResponseEntity<ApiResponse<?>> requestWithdrawal(@RequestBody Map<String, Object> body, Authentication auth) {
         String userId = (String) auth.getPrincipal();
         BigDecimal amount = toAmount(body.get("amount"));
-        String method = body.getOrDefault("method", "bank_transfer").toString();
+        String bankName = requireText(body.get("bank_name"), "Select a bank or wallet");
+        String accountTitle = requireText(body.get("account_title"), "Enter the account title");
+        String accountNumber = requireText(body.get("account_number"), "Enter the account number or IBAN");
 
         Portfolio portfolio = portfolioRepo.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Portfolio not found"));
@@ -154,7 +156,9 @@ public class PortfolioController {
         WithdrawRequest request = new WithdrawRequest();
         request.setUserId(userId);
         request.setAmount(amount);
-        request.setMethod(method);
+        request.setBankName(bankName);
+        request.setAccountTitle(accountTitle);
+        request.setAccountNumber(accountNumber);
         request.setStatus("pending");
         withdrawRequestRepo.save(request);
 

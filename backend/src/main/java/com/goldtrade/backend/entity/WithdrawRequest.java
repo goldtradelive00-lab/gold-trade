@@ -27,6 +27,15 @@ public class WithdrawRequest {
     @Column(name = "method", nullable = false)
     private String method = "bank_transfer";
 
+    @Column(name = "bank_name")
+    private String bankName;
+
+    @Column(name = "account_title")
+    private String accountTitle;
+
+    @Column(name = "account_number")
+    private String accountNumber;
+
     @Column(name = "status", nullable = false)
     private String status = "pending";
 

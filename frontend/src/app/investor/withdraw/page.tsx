@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { formatCurrency, getErrorMessage } from "@/lib/utils";
 import type { PortfolioOverview } from "@/types/domain";
+import { PAKISTAN_BANKS } from "@/lib/pakistan-banks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,7 +39,7 @@ import {
 interface WithdrawRequestRow {
   id: string;
   amount: number;
-  method: string;
+  bank_name: string;
   status: "pending" | "approved" | "rejected";
   requested_at: string;
 }
@@ -49,11 +50,12 @@ const STATUS_BADGE: Record<WithdrawRequestRow["status"], string> = {
   rejected: "bg-destructive text-destructive-foreground",
 };
 
+const emptyForm = { amount: "", bank: "", otherBank: "", accountTitle: "", accountNumber: "" };
+
 export default function WithdrawPage() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [amount, setAmount] = useState("");
-  const [method, setMethod] = useState("bank_transfer");
+  const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
 
   const { data: portfolio } = useQuery({
@@ -72,8 +74,13 @@ export default function WithdrawPage() {
     ?.filter((r) => r.status === "approved")
     .reduce((sum, r) => sum + r.amount, 0) ?? 0;
 
+  const closeDialog = () => {
+    setOpen(false);
+    setForm(emptyForm);
+  };
+
   const submit = async () => {
-    const value = parseFloat(amount);
+    const value = parseFloat(form.amount);
     if (!value || value <= 0) {
       toast.error("Enter a valid amount");
       return;
@@ -82,13 +89,33 @@ export default function WithdrawPage() {
       toast.error("Amount exceeds your available cash balance");
       return;
     }
+    if (!form.bank) {
+      toast.error("Select a bank or wallet");
+      return;
+    }
+    if (form.bank === "Other" && !form.otherBank.trim()) {
+      toast.error("Enter the name of your bank or wallet");
+      return;
+    }
+    if (!form.accountTitle.trim()) {
+      toast.error("Enter the account title");
+      return;
+    }
+    if (!form.accountNumber.trim()) {
+      toast.error("Enter the account number or IBAN");
+      return;
+    }
     setSubmitting(true);
     try {
-      await api.post("/api/portfolio/withdrawals", { amount: value, method });
-      setAmount("");
-      setOpen(false);
+      await api.post("/api/portfolio/withdrawals", {
+        amount: value,
+        bank_name: form.bank === "Other" ? form.otherBank.trim() : form.bank,
+        account_title: form.accountTitle,
+        account_number: form.accountNumber,
+      });
       toast.success("Withdrawal request submitted for review");
       queryClient.invalidateQueries({ queryKey: ["portfolio", "withdrawals"] });
+      closeDialog();
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -142,7 +169,7 @@ export default function WithdrawPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
-                <TableHead>Method</TableHead>
+                <TableHead>Bank / Wallet</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
               </TableRow>
@@ -153,9 +180,7 @@ export default function WithdrawPage() {
                   <TableCell className="text-muted-foreground">
                     {new Date(r.requested_at).toLocaleDateString()}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {r.method.replace("_", " ")}
-                  </TableCell>
+                  <TableCell className="text-muted-foreground">{r.bank_name}</TableCell>
                   <TableCell>
                     <Badge className={STATUS_BADGE[r.status]}>{r.status.toUpperCase()}</Badge>
                   </TableCell>
@@ -169,7 +194,7 @@ export default function WithdrawPage() {
         )}
       </div>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={(v) => (v ? setOpen(true) : closeDialog())}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Request a Withdrawal</DialogTitle>
@@ -178,7 +203,7 @@ export default function WithdrawPage() {
               business days.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
             <div className="space-y-2">
               <Label htmlFor="amount">Amount (PKR)</Label>
               <Input
@@ -186,22 +211,54 @@ export default function WithdrawPage() {
                 type="number"
                 min="0"
                 placeholder="0.00"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                value={form.amount}
+                onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
-              <Label>Method</Label>
-              <Select value={method} onValueChange={setMethod}>
+              <Label>Bank / Wallet</Label>
+              <Select value={form.bank} onValueChange={(v) => setForm((f) => ({ ...f, bank: v }))}>
                 <SelectTrigger className="w-full">
-                  <SelectValue />
+                  <SelectValue placeholder="Select the bank or wallet to receive funds" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                  <SelectItem value="wire">Wire</SelectItem>
+                  {PAKISTAN_BANKS.map((b) => (
+                    <SelectItem key={b} value={b}>
+                      {b}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+              {form.bank === "Other" && (
+                <Input
+                  className="mt-2"
+                  placeholder="Enter the name of your bank or wallet"
+                  value={form.otherBank}
+                  onChange={(e) => setForm((f) => ({ ...f, otherBank: e.target.value }))}
+                />
+              )}
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="account_title">Account Title</Label>
+              <Input
+                id="account_title"
+                placeholder="Name on the account"
+                value={form.accountTitle}
+                onChange={(e) => setForm((f) => ({ ...f, accountTitle: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="account_number">Account Number / IBAN</Label>
+              <Input
+                id="account_number"
+                placeholder="e.g. PK00XXXX0000000000000000 or wallet number"
+                value={form.accountNumber}
+                onChange={(e) => setForm((f) => ({ ...f, accountNumber: e.target.value }))}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Funds are sent to the account details above once approved.
+            </p>
           </div>
           <DialogFooter>
             <Button className="w-full sm:w-auto" onClick={submit} disabled={submitting}>
