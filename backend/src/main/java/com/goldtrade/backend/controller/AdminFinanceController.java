@@ -11,8 +11,10 @@ import com.goldtrade.backend.repository.PortfolioRepository;
 import com.goldtrade.backend.repository.TransactionRepository;
 import com.goldtrade.backend.repository.UserRepository;
 import com.goldtrade.backend.repository.WithdrawRequestRepository;
+import com.goldtrade.backend.service.DailyProfitService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,17 +34,31 @@ public class AdminFinanceController {
     private final HoldingRepository holdingRepo;
     private final UserRepository userRepo;
     private final WithdrawRequestRepository withdrawRequestRepo;
+    private final DailyProfitService dailyProfitService;
 
     public AdminFinanceController(TransactionRepository transactionRepo,
                                    PortfolioRepository portfolioRepo,
                                    HoldingRepository holdingRepo,
                                    UserRepository userRepo,
-                                   WithdrawRequestRepository withdrawRequestRepo) {
+                                   WithdrawRequestRepository withdrawRequestRepo,
+                                   DailyProfitService dailyProfitService) {
         this.transactionRepo = transactionRepo;
         this.portfolioRepo = portfolioRepo;
         this.holdingRepo = holdingRepo;
         this.userRepo = userRepo;
         this.withdrawRequestRepo = withdrawRequestRepo;
+        this.dailyProfitService = dailyProfitService;
+    }
+
+    // POST /api/admin/finance/run-daily-profit — manually trigger the daily 1% profit run
+    // (the scheduled job already runs this once a day at midnight; this is for ops use if
+    // the server was down, or to verify the feature without waiting for midnight)
+    @PostMapping("/run-daily-profit")
+    public ResponseEntity<ApiResponse<?>> runDailyProfit() {
+        int credited = dailyProfitService.runDailyProfit();
+        return ResponseEntity.ok(ApiResponse.success(
+                Map.of("portfolios_credited", credited),
+                "Daily profit credited to " + credited + " portfolio(s)"));
     }
 
     // GET /api/admin/finance/overview — platform-wide totals
@@ -56,9 +72,10 @@ public class AdminFinanceController {
         BigDecimal buys = sumByType(all, "buy");
         BigDecimal sells = sumByType(all, "sell");
         BigDecimal referralBonuses = sumByType(all, "referral_bonus");
-        BigDecimal moneyIn = deposits.add(dividends).add(sells).add(referralBonuses);
+        BigDecimal dailyProfits = sumByType(all, "daily_profit");
+        BigDecimal moneyIn = deposits.add(dividends).add(sells).add(referralBonuses).add(dailyProfits);
         BigDecimal moneyOut = withdrawals.add(buys);
-        BigDecimal netFlow = deposits.add(dividends).add(referralBonuses).subtract(withdrawals);
+        BigDecimal netFlow = deposits.add(dividends).add(referralBonuses).add(dailyProfits).subtract(withdrawals);
 
         List<WithdrawRequest> pending = withdrawRequestRepo.findAllByOrderByRequestedAtDesc().stream()
                 .filter(w -> "pending".equals(w.getStatus()))
@@ -83,6 +100,7 @@ public class AdminFinanceController {
         result.put("total_buys", buys);
         result.put("total_sells", sells);
         result.put("total_referral_bonuses", referralBonuses);
+        result.put("total_daily_profits", dailyProfits);
         result.put("money_in", moneyIn);
         result.put("money_out", moneyOut);
         result.put("net_flow", netFlow);

@@ -77,6 +77,7 @@ public class PortfolioController {
         return ResponseEntity.ok(ApiResponse.success(Map.of(
                 "portfolio_id", portfolio.getId(),
                 "cash_balance", portfolio.getCashBalance(),
+                "principal_balance", portfolio.getPrincipalBalance(),
                 "holdings_value", holdingsValue,
                 "total_value", totalValue,
                 "holdings", holdings

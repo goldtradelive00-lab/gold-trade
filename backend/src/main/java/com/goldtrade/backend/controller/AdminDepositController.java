@@ -76,6 +76,9 @@ public class AdminDepositController {
                 .orElseThrow(() -> new ResourceNotFoundException("Portfolio not found"));
 
         portfolio.setCashBalance(portfolio.getCashBalance().add(request.getAmount()));
+        // Deposits (not referral bonuses or profit) are the only thing that grows the
+        // principal that earns the daily 1% — see DailyProfitService.
+        portfolio.setPrincipalBalance(portfolio.getPrincipalBalance().add(request.getAmount()));
         portfolioRepo.save(portfolio);
 
         Transaction tx = new Transaction();

@@ -25,6 +25,7 @@ const TX_BADGE: Record<string, string> = {
   withdrawal: "bg-secondary text-secondary-foreground",
   dividend: "bg-secondary text-secondary-foreground",
   referral_bonus: "bg-primary text-primary-foreground",
+  daily_profit: "bg-primary text-primary-foreground",
 };
 
 export default function InvestorDashboardPage() {
@@ -61,6 +62,10 @@ export default function InvestorDashboardPage() {
           <div>
             <p className="text-muted-foreground">Holdings Value</p>
             <p className="mt-1 text-foreground">{formatCurrency(portfolio.holdings_value)}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Principal (earns 1% daily)</p>
+            <p className="mt-1 text-foreground">{formatCurrency(portfolio.principal_balance)}</p>
           </div>
         </div>
       </div>

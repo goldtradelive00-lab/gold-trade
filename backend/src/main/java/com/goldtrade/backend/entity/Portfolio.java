@@ -24,6 +24,12 @@ public class Portfolio {
     @Column(name = "cash_balance", nullable = false)
     private BigDecimal cashBalance = BigDecimal.ZERO;
 
+    // Net deposited principal (deposits minus withdrawals) — this is what earns the daily 1%
+    // profit. Referral bonuses and prior profit credits never touch this, so profit is simple
+    // (non-compounding) interest on the money the investor actually put in.
+    @Column(name = "principal_balance", nullable = false)
+    private BigDecimal principalBalance = BigDecimal.ZERO;
+
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
 

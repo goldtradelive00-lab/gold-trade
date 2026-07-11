@@ -8,7 +8,14 @@ export type AssetType =
   | "private_equity"
   | "cash"
   | "other";
-export type TransactionType = "buy" | "sell" | "deposit" | "withdrawal" | "dividend";
+export type TransactionType =
+  | "buy"
+  | "sell"
+  | "deposit"
+  | "withdrawal"
+  | "dividend"
+  | "referral_bonus"
+  | "daily_profit";
 export type PermissionLevel = "super_admin" | "compliance_officer" | "support";
 
 export interface SessionUser {
@@ -45,6 +52,7 @@ export interface Transaction {
 export interface PortfolioOverview {
   portfolio_id: string;
   cash_balance: number;
+  principal_balance: number;
   holdings_value: number;
   total_value: number;
   holdings: Holding[];

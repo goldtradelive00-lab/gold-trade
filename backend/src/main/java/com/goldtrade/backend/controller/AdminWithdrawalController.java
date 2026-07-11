@@ -18,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -70,6 +71,11 @@ public class AdminWithdrawalController {
         }
 
         portfolio.setCashBalance(portfolio.getCashBalance().subtract(request.getAmount()));
+        // Withdrawals draw down principal first (referral bonuses and prior profit credits
+        // are cash but were never counted as principal), so future daily 1% profit is based
+        // on what's actually left of the investor's deposited principal.
+        portfolio.setPrincipalBalance(
+                portfolio.getPrincipalBalance().subtract(request.getAmount()).max(BigDecimal.ZERO));
         portfolioRepo.save(portfolio);
 
         Transaction tx = new Transaction();

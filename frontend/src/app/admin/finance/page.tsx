@@ -21,6 +21,7 @@ interface FinanceOverview {
   total_buys: number;
   total_sells: number;
   total_referral_bonuses: number;
+  total_daily_profits: number;
   money_in: number;
   money_out: number;
   net_flow: number;
@@ -36,7 +37,7 @@ interface LedgerRow {
   id: string;
   investor_name: string;
   investor_email: string;
-  type: "buy" | "sell" | "deposit" | "withdrawal" | "dividend" | "referral_bonus";
+  type: "buy" | "sell" | "deposit" | "withdrawal" | "dividend" | "referral_bonus" | "daily_profit";
   description: string;
   amount: number;
   occurred_at: string;
@@ -49,6 +50,7 @@ const TYPE_BADGE: Record<LedgerRow["type"], string> = {
   withdrawal: "bg-destructive text-destructive-foreground",
   dividend: "bg-secondary text-secondary-foreground",
   referral_bonus: "bg-primary text-primary-foreground",
+  daily_profit: "bg-primary text-primary-foreground",
 };
 
 export default function AdminFinancePage() {
@@ -84,7 +86,7 @@ export default function AdminFinancePage() {
           <p className="font-serif-display mt-2 text-2xl text-foreground">
             {formatCurrency(overview.money_in)}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">Deposits, dividends, sales &amp; referral bonuses</p>
+          <p className="mt-1 text-xs text-muted-foreground">Deposits, dividends, sales, referral bonuses &amp; daily profit</p>
         </div>
         <div className="hairline-border rounded-xl bg-card p-6">
           <p className="text-xs uppercase tracking-widest text-muted-foreground">Money Out</p>
@@ -105,6 +107,7 @@ export default function AdminFinancePage() {
             <Row label="Deposits" value={overview.total_deposits} positive />
             <Row label="Dividends" value={overview.total_dividends} positive />
             <Row label="Referral Bonuses" value={overview.total_referral_bonuses} positive />
+            <Row label="Daily Profits (1%)" value={overview.total_daily_profits} positive />
             <Row label="Withdrawals" value={overview.total_withdrawals} />
             <Row label="Buys" value={overview.total_buys} />
             <Row label="Sells" value={overview.total_sells} positive />
