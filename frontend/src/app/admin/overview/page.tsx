@@ -33,8 +33,8 @@ export default function AdminOverviewPage() {
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-      <StatCard label="Total AUM" value={formatCurrency(data.total_aum)} />
-      <StatCard label="Treasury Balance" value={formatCurrency(data.treasury_balance)} />
+      <StatCard label="Total AUM" value={formatCurrency(data.total_aum ?? 0)} />
+      <StatCard label="Treasury Balance" value={formatCurrency(data.treasury_balance ?? 0)} />
       <StatCard label="Total Investors" value={data.total_investors.toString()} />
       <StatCard label="Approved Investors" value={data.approved_investors.toString()} />
       <StatCard
