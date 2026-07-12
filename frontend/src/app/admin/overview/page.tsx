@@ -58,7 +58,9 @@ function StatCard({
   return (
     <div className="hairline-border rounded-xl bg-card p-6">
       <p className="text-xs uppercase tracking-widest text-muted-foreground">{label}</p>
-      <p className={`font-serif-display mt-2 text-2xl ${highlight ? "text-primary" : "text-foreground"}`}>
+      <p
+        className={`font-serif-display mt-2 text-2xl break-words ${highlight ? "text-primary" : "text-foreground"}`}
+      >
         {value}
       </p>
     </div>
