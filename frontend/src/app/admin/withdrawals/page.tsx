@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DetailRow } from "@/components/admin/detail-row";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -72,71 +73,88 @@ export default function AdminWithdrawalsPage() {
     return <Skeleton className="h-64 w-full" />;
   }
 
-  const pendingCount = requests.filter((r) => r.status === "pending").length;
+  const pending = requests.filter((r) => r.status === "pending");
+  const approved = requests.filter((r) => r.status === "approved");
+  const rejected = requests.filter((r) => r.status === "rejected");
+
+  const renderTable = (rows: WithdrawRequestRow[], emptyLabel: string) =>
+    rows.length === 0 ? (
+      <p className="mt-4 text-sm text-muted-foreground">{emptyLabel}</p>
+    ) : (
+      <Table className="mt-4">
+        <TableHeader>
+          <TableRow>
+            <TableHead>Investor</TableHead>
+            <TableHead>Bank / Wallet</TableHead>
+            <TableHead>Requested</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Amount</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((r) => (
+            <TableRow key={r.id}>
+              <TableCell>
+                <p className="text-foreground">{r.customer}</p>
+                <p className="text-xs text-muted-foreground">{r.email}</p>
+              </TableCell>
+              <TableCell className="text-muted-foreground">{r.bank_name}</TableCell>
+              <TableCell className="text-muted-foreground">
+                {new Date(r.requested_at).toLocaleDateString()}
+              </TableCell>
+              <TableCell>
+                <Badge className={STATUS_BADGE[r.status]}>{r.status.toUpperCase()}</Badge>
+              </TableCell>
+              <TableCell className="font-serif-display text-right text-foreground">
+                {formatCurrency(r.amount)}
+              </TableCell>
+              <TableCell className="text-right">
+                <div className="flex justify-end gap-2">
+                  <Button size="sm" variant="outline" onClick={() => setViewing(r)}>
+                    View
+                  </Button>
+                  {r.status === "pending" && (
+                    <>
+                      <Button size="sm" onClick={() => review(r.id, "approve")}>
+                        Approve
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => review(r.id, "reject")}>
+                        Reject
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    );
 
   return (
     <div className="space-y-6">
       <div className="hairline-border rounded-xl bg-card p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm uppercase tracking-widest text-muted-foreground">
-            Withdraw Requests
-          </h2>
-          <Badge className="bg-secondary text-secondary-foreground">{pendingCount} pending</Badge>
-        </div>
+        <h2 className="text-sm uppercase tracking-widest text-muted-foreground">
+          Withdraw Requests
+        </h2>
 
-        {requests.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">No withdrawal requests yet.</p>
-        ) : (
-          <Table className="mt-4">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Investor</TableHead>
-                <TableHead>Bank / Wallet</TableHead>
-                <TableHead>Requested</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {requests.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell>
-                    <p className="text-foreground">{r.customer}</p>
-                    <p className="text-xs text-muted-foreground">{r.email}</p>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{r.bank_name}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {new Date(r.requested_at).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={STATUS_BADGE[r.status]}>{r.status.toUpperCase()}</Badge>
-                  </TableCell>
-                  <TableCell className="font-serif-display text-right text-foreground">
-                    {formatCurrency(r.amount)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button size="sm" variant="outline" onClick={() => setViewing(r)}>
-                        View
-                      </Button>
-                      {r.status === "pending" && (
-                        <>
-                          <Button size="sm" onClick={() => review(r.id, "approve")}>
-                            Approve
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => review(r.id, "reject")}>
-                            Reject
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+        <Tabs defaultValue="pending" className="mt-4">
+          <TabsList>
+            <TabsTrigger value="pending">Pending ({pending.length})</TabsTrigger>
+            <TabsTrigger value="approved">Approved ({approved.length})</TabsTrigger>
+            <TabsTrigger value="rejected">Rejected ({rejected.length})</TabsTrigger>
+          </TabsList>
+          <TabsContent value="pending">
+            {renderTable(pending, "No pending withdrawal requests.")}
+          </TabsContent>
+          <TabsContent value="approved">
+            {renderTable(approved, "No approved withdrawal requests yet.")}
+          </TabsContent>
+          <TabsContent value="rejected">
+            {renderTable(rejected, "No rejected withdrawal requests.")}
+          </TabsContent>
+        </Tabs>
       </div>
 
       <Dialog open={!!viewing} onOpenChange={(v) => !v && setViewing(null)}>
