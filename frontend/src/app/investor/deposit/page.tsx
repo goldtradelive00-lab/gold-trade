@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import { formatCurrency, getErrorMessage } from "@/lib/utils";
 import type { PortfolioOverview } from "@/types/domain";
 import { PAKISTAN_BANKS } from "@/lib/pakistan-banks";
+import { useMarkSectionRead } from "@/lib/use-mark-section-read";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,6 +65,7 @@ const emptyForm = {
 };
 
 export default function DepositPage() {
+  useMarkSectionRead("deposit");
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);

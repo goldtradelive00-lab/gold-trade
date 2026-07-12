@@ -89,18 +89,16 @@ export function GoldPriceChart() {
     return [Math.floor(min - pad), Math.ceil(max + pad)];
   }, [chartData]);
 
-  if (historyLoading || chartData.length === 0) {
-    return (
-      <div className="hairline-border gold-glow rounded-xl bg-card p-6">
-        <h2 className="text-xs uppercase tracking-widest text-muted-foreground">
-          Gold Rate — Pakistan · 24K / Tola
-        </h2>
-        <Skeleton className="mt-4 h-64 w-full" />
-      </div>
-    );
-  }
+  // The live price (one fast, cached call) can arrive well before the 30-day history has
+  // finished backfilling, so the price header doesn't wait on the chart to render.
+  const current = live?.price_per_tola ?? (chartData.length > 0 ? chartData[chartData.length - 1].price : null);
+  const openPrice = chartData.length > 0 ? chartData[0].price : current;
+  const change = current !== null && openPrice !== null ? current - openPrice : 0;
+  const changePct = openPrice ? (change / openPrice) * 100 : 0;
+  const isUp = change >= 0;
+  const isLive = live?.live ?? true;
 
-  if (historyError && liveError) {
+  if (current === null && liveError && historyError) {
     return (
       <div className="hairline-border rounded-xl bg-card p-6">
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground">
@@ -113,12 +111,16 @@ export function GoldPriceChart() {
     );
   }
 
-  const current = chartData[chartData.length - 1].price;
-  const openPrice = chartData[0].price;
-  const change = current - openPrice;
-  const changePct = (change / openPrice) * 100;
-  const isUp = change >= 0;
-  const isLive = live?.live ?? true;
+  if (current === null) {
+    return (
+      <div className="hairline-border gold-glow rounded-xl bg-card p-6">
+        <h2 className="text-xs uppercase tracking-widest text-muted-foreground">
+          Gold Rate — Pakistan · 24K / Tola
+        </h2>
+        <Skeleton className="mt-4 h-64 w-full" />
+      </div>
+    );
+  }
 
   return (
     <div className="hairline-border gold-glow rounded-xl bg-card p-6">
@@ -152,35 +154,39 @@ export function GoldPriceChart() {
       </div>
 
       <div className="mt-4 h-64">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 8, right: 0, bottom: 0, left: 0 }}>
-            <defs>
-              <linearGradient id="goldFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={GOLD} stopOpacity={0.35} />
-                <stop offset="100%" stopColor={GOLD} stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <XAxis
-              dataKey="date"
-              tickFormatter={formatDateLabel}
-              tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
-              tickLine={false}
-              axisLine={false}
-              interval="preserveStartEnd"
-              minTickGap={40}
-            />
-            <YAxis domain={domain} hide />
-            <Tooltip content={<CustomTooltip />} cursor={{ stroke: GOLD, strokeOpacity: 0.2 }} />
-            <Area
-              type="monotone"
-              dataKey="price"
-              stroke={GOLD}
-              strokeWidth={2}
-              fill="url(#goldFill)"
-              isAnimationActive={false}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+        {historyLoading && chartData.length === 0 ? (
+          <Skeleton className="h-full w-full" />
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData} margin={{ top: 8, right: 0, bottom: 0, left: 0 }}>
+              <defs>
+                <linearGradient id="goldFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={GOLD} stopOpacity={0.35} />
+                  <stop offset="100%" stopColor={GOLD} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis
+                dataKey="date"
+                tickFormatter={formatDateLabel}
+                tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+                tickLine={false}
+                axisLine={false}
+                interval="preserveStartEnd"
+                minTickGap={40}
+              />
+              <YAxis domain={domain} hide />
+              <Tooltip content={<CustomTooltip />} cursor={{ stroke: GOLD, strokeOpacity: 0.2 }} />
+              <Area
+                type="monotone"
+                dataKey="price"
+                stroke={GOLD}
+                strokeWidth={2}
+                fill="url(#goldFill)"
+                isAnimationActive={false}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
       </div>
 
       <p className="mt-3 text-xs text-muted-foreground">

@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TableSkeleton } from "@/components/skeletons";
 import { DetailRow } from "@/components/admin/detail-row";
+import { useMarkSectionRead } from "@/lib/use-mark-section-read";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -51,6 +52,7 @@ const STATUS_BADGE: Record<RequestStatus, string> = {
 };
 
 export default function AdminWithdrawalsPage() {
+  useMarkSectionRead("admin_withdraw");
   const queryClient = useQueryClient();
   const [viewing, setViewing] = useState<WithdrawRequestRow | null>(null);
   const { data: requests, isLoading } = useQuery({

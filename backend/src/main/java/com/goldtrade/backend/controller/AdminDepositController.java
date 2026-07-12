@@ -15,6 +15,7 @@ import com.goldtrade.backend.repository.PortfolioRepository;
 import com.goldtrade.backend.repository.ReferralEarningRepository;
 import com.goldtrade.backend.repository.TransactionRepository;
 import com.goldtrade.backend.repository.UserRepository;
+import com.goldtrade.backend.service.NotificationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,19 +40,22 @@ public class AdminDepositController {
     private final UserRepository userRepo;
     private final AdminRepository adminRepo;
     private final ReferralEarningRepository referralEarningRepo;
+    private final NotificationService notificationService;
 
     public AdminDepositController(DepositRequestRepository depositRequestRepo,
                                    PortfolioRepository portfolioRepo,
                                    TransactionRepository transactionRepo,
                                    UserRepository userRepo,
                                    AdminRepository adminRepo,
-                                   ReferralEarningRepository referralEarningRepo) {
+                                   ReferralEarningRepository referralEarningRepo,
+                                   NotificationService notificationService) {
         this.depositRequestRepo = depositRequestRepo;
         this.portfolioRepo = portfolioRepo;
         this.transactionRepo = transactionRepo;
         this.userRepo = userRepo;
         this.adminRepo = adminRepo;
         this.referralEarningRepo = referralEarningRepo;
+        this.notificationService = notificationService;
     }
 
     // GET /api/admin/deposit-requests
@@ -98,6 +102,15 @@ public class AdminDepositController {
         request.setReviewedAt(OffsetDateTime.now(ZoneOffset.UTC));
         depositRequestRepo.save(request);
 
+        notificationService.notifyInvestor(
+                request.getUserId(),
+                "deposit_approved",
+                "Deposit approved",
+                "Your deposit of " + formatAmount(request.getAmount()) + " was approved and credited to your account.",
+                "/investor/deposit",
+                "deposit"
+        );
+
         return ResponseEntity.ok(ApiResponse.success(null, "Deposit approved"));
     }
 
@@ -126,6 +139,15 @@ public class AdminDepositController {
         earning.setDepositAmount(request.getAmount());
         earning.setCommissionAmount(commission);
         referralEarningRepo.save(earning);
+
+        notificationService.notifyInvestor(
+                referrerId,
+                "referral_bonus",
+                "Referral bonus earned",
+                "You earned " + formatAmount(commission) + " (5%) from " + depositor.getFullName() + "'s approved deposit.",
+                "/investor/refer",
+                "referral"
+        );
     }
 
     // POST /api/admin/deposit-requests/{id}/reject
@@ -142,7 +164,20 @@ public class AdminDepositController {
         request.setReviewedAt(OffsetDateTime.now(ZoneOffset.UTC));
         depositRequestRepo.save(request);
 
+        notificationService.notifyInvestor(
+                request.getUserId(),
+                "deposit_rejected",
+                "Deposit not approved",
+                "Your deposit request of " + formatAmount(request.getAmount()) + " was not approved. Contact support if you believe this is a mistake.",
+                "/investor/deposit",
+                "deposit"
+        );
+
         return ResponseEntity.ok(ApiResponse.success(null, "Deposit rejected"));
+    }
+
+    private String formatAmount(BigDecimal amount) {
+        return "Rs " + amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 
     private Map<String, Object> toRow(DepositRequest request) {

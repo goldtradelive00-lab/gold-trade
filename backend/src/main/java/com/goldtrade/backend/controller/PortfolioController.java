@@ -17,11 +17,13 @@ import com.goldtrade.backend.repository.ReferralEarningRepository;
 import com.goldtrade.backend.repository.TransactionRepository;
 import com.goldtrade.backend.repository.UserRepository;
 import com.goldtrade.backend.repository.WithdrawRequestRepository;
+import com.goldtrade.backend.service.NotificationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +41,7 @@ public class PortfolioController {
     private final AppSettingRepository settingRepo;
     private final UserRepository userRepo;
     private final ReferralEarningRepository referralEarningRepo;
+    private final NotificationService notificationService;
 
     public PortfolioController(PortfolioRepository portfolioRepo,
                                 TransactionRepository transactionRepo,
@@ -46,7 +49,8 @@ public class PortfolioController {
                                 DepositRequestRepository depositRequestRepo,
                                 AppSettingRepository settingRepo,
                                 UserRepository userRepo,
-                                ReferralEarningRepository referralEarningRepo) {
+                                ReferralEarningRepository referralEarningRepo,
+                                NotificationService notificationService) {
         this.portfolioRepo = portfolioRepo;
         this.transactionRepo = transactionRepo;
         this.withdrawRequestRepo = withdrawRequestRepo;
@@ -54,6 +58,7 @@ public class PortfolioController {
         this.settingRepo = settingRepo;
         this.userRepo = userRepo;
         this.referralEarningRepo = referralEarningRepo;
+        this.notificationService = notificationService;
     }
 
     // GET /api/portfolio — current investor's overview
@@ -124,6 +129,15 @@ public class PortfolioController {
         request.setAdminWhatsappNumber(adminWhatsapp);
         request.setStatus("pending");
         depositRequestRepo.save(request);
+
+        User investor = userRepo.findById(userId).orElse(null);
+        notificationService.notifyAllAdmins(
+                "new_deposit_request",
+                "New deposit request",
+                (investor != null ? investor.getFullName() : "An investor") + " requested a deposit of " + formatAmount(amount) + ".",
+                "/admin/deposit-requests",
+                "admin_deposit"
+        );
 
         return ResponseEntity.ok(ApiResponse.success(null, "Deposit request submitted for review"));
     }
@@ -199,7 +213,20 @@ public class PortfolioController {
         request.setStatus("pending");
         withdrawRequestRepo.save(request);
 
+        User investor = userRepo.findById(userId).orElse(null);
+        notificationService.notifyAllAdmins(
+                "new_withdrawal_request",
+                "New withdrawal request",
+                (investor != null ? investor.getFullName() : "An investor") + " requested a withdrawal of " + formatAmount(amount) + ".",
+                "/admin/withdrawals",
+                "admin_withdraw"
+        );
+
         return ResponseEntity.ok(ApiResponse.success(null, "Withdrawal request submitted for review"));
+    }
+
+    private String formatAmount(BigDecimal amount) {
+        return "Rs " + amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 
     private BigDecimal toAmount(Object raw) {

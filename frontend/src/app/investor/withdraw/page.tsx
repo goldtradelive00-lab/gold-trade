@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { formatCurrency, getErrorMessage } from "@/lib/utils";
 import type { PortfolioOverview } from "@/types/domain";
 import { PAKISTAN_BANKS } from "@/lib/pakistan-banks";
+import { useMarkSectionRead } from "@/lib/use-mark-section-read";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,6 +55,7 @@ const STATUS_BADGE: Record<WithdrawRequestRow["status"], string> = {
 const emptyForm = { amount: "", bank: "", otherBank: "", accountTitle: "", accountNumber: "" };
 
 export default function WithdrawPage() {
+  useMarkSectionRead("withdraw");
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);

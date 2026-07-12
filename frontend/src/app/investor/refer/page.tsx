@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAuthStore } from "@/stores/auth-store";
+import { useMarkSectionRead } from "@/lib/use-mark-section-read";
 
 interface ReferralEarningRow {
   id: string;
@@ -43,6 +44,7 @@ interface ReferralsResponse {
 }
 
 export default function ReferralPage() {
+  useMarkSectionRead("referral");
   const user = useAuthStore((s) => s.user);
   const code = user?.referral_code ?? "";
   const [origin, setOrigin] = useState("");
