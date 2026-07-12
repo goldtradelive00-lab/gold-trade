@@ -81,7 +81,7 @@ export default function ReferralPage() {
             Your Referral Code
           </p>
           <div className="mt-3 flex gap-2">
-            <Input readOnly value={code} className="font-serif-display text-lg text-primary" />
+            <Input readOnly value={code} className="font-mono text-lg tracking-wide text-primary" />
             <Button variant="outline" size="icon" onClick={() => copy(code)}>
               <Copy className="size-4" />
             </Button>
