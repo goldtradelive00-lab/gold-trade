@@ -57,10 +57,10 @@ export default function VerifyEmailPendingPage() {
           ) : (
             "your email address"
           )}
-          . Click the link in that email to activate your membership application.
+          . Click the link in that email to activate your account.
         </p>
         <p className="mt-3 text-xs text-muted-foreground">
-          Once verified, your application is reviewed — approval typically occurs within 24 hours.
+          Once verified, you can log in right away.
         </p>
 
         {email && (

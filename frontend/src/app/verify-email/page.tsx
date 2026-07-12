@@ -33,7 +33,7 @@ function VerifyEmailContent() {
       .get<null>(`/api/auth/verify-email?token=${encodeURIComponent(token)}`)
       .then(() => {
         setStatus("success");
-        setMessage("Your email has been verified. Your membership application is now pending admin approval.");
+        setMessage("Your email has been verified. Your account is now active — you can log in.");
       })
       .catch((err) => {
         setStatus("error");

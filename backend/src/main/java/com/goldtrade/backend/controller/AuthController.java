@@ -102,7 +102,7 @@ public class AuthController {
 
         return ResponseEntity.ok(ApiResponse.success(
                 Map.of("user_id", user.getId()),
-                "Application received. Please check your email to verify your address."));
+                "Account created. Please check your email to verify your address before logging in."));
     }
 
     // GET /api/auth/me
@@ -268,10 +268,12 @@ public class AuthController {
 
         user.setEmailVerified(true);
         user.setVerificationToken(null);
+        user.setIsApproved(true);
+        user.setRejectionReason(null);
         userRepo.save(user);
 
         return ResponseEntity.ok(ApiResponse.success(null,
-                "Email verified. Your membership application is now pending admin approval."));
+                "Email verified. Your account is now active — you can log in."));
     }
 
     // POST /api/auth/forgot-password
