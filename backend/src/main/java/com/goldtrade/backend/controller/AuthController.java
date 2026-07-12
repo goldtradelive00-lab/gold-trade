@@ -287,14 +287,22 @@ public class AuthController {
             resetToken.setToken(UUID.randomUUID().toString());
             resetToken.setExpiresAt(OffsetDateTime.now(ZoneOffset.UTC).plusHours(1));
             resetTokenRepo.save(resetToken);
-            emailService.sendPasswordResetEmail(email, resetToken.getToken());
+            try {
+                emailService.sendPasswordResetEmail(email, resetToken.getToken());
+            } catch (Exception e) {
+                log.warn("Failed to send password reset email to {}: {}", email, e.getMessage());
+            }
         }, () -> adminRepo.findByEmail(email).ifPresent(admin -> {
             PasswordResetToken resetToken = new PasswordResetToken();
             resetToken.setAdminId(admin.getId());
             resetToken.setToken(UUID.randomUUID().toString());
             resetToken.setExpiresAt(OffsetDateTime.now(ZoneOffset.UTC).plusHours(1));
             resetTokenRepo.save(resetToken);
-            emailService.sendPasswordResetEmail(email, resetToken.getToken());
+            try {
+                emailService.sendPasswordResetEmail(email, resetToken.getToken());
+            } catch (Exception e) {
+                log.warn("Failed to send password reset email to {}: {}", email, e.getMessage());
+            }
         }));
 
         return ResponseEntity.ok(ApiResponse.success(null,

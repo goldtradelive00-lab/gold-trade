@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { AdminSidebar } from "@/components/layout/admin-sidebar";
 import { DashboardTopbar } from "@/components/layout/dashboard-topbar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,8 +10,22 @@ import { api } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth-store";
 import type { SessionUser } from "@/types/domain";
 
+const PAGE_TITLES: { prefix: string; title: string }[] = [
+  { prefix: "/admin/overview", title: "Dashboard" },
+  { prefix: "/admin/finance", title: "Finance" },
+  { prefix: "/admin/deposit-requests", title: "Deposit Requests" },
+  { prefix: "/admin/withdrawals", title: "Withdraw Requests" },
+  { prefix: "/admin/investors", title: "Investors" },
+  { prefix: "/admin/settings", title: "Settings" },
+];
+
+function titleForPath(pathname: string): string {
+  return PAGE_TITLES.find((p) => pathname.startsWith(p.prefix))?.title ?? "Admin Console";
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, setUser } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -72,7 +86,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       )}
 
       <div className="flex min-h-0 flex-1 flex-col">
-        <DashboardTopbar title="Admin Console" user={user} onMenuClick={() => setMobileNavOpen(true)} />
+        <DashboardTopbar
+          title={titleForPath(pathname)}
+          user={user}
+          onMenuClick={() => setMobileNavOpen(true)}
+        />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
     </div>

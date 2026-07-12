@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { InvestorSidebar } from "@/components/layout/investor-sidebar";
 import { DashboardTopbar } from "@/components/layout/dashboard-topbar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,8 +10,17 @@ import { api } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth-store";
 import type { SessionUser } from "@/types/domain";
 
+const PAGE_TITLES: Record<string, string> = {
+  "/investor/dashboard": "Overview",
+  "/investor/withdraw": "Withdraw",
+  "/investor/deposit": "Deposit",
+  "/investor/refer": "Referral",
+  "/investor/settings": "Settings",
+};
+
 export default function InvestorLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, setUser } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -72,7 +81,11 @@ export default function InvestorLayout({ children }: { children: React.ReactNode
       )}
 
       <div className="flex min-h-0 flex-1 flex-col">
-        <DashboardTopbar title="Overview" user={user} onMenuClick={() => setMobileNavOpen(true)} />
+        <DashboardTopbar
+          title={PAGE_TITLES[pathname] ?? "Overview"}
+          user={user}
+          onMenuClick={() => setMobileNavOpen(true)}
+        />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
     </div>
