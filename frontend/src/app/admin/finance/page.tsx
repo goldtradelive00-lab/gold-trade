@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatCardSkeleton, CardBlockSkeleton, TableSkeleton } from "@/components/skeletons";
 import {
   Table,
   TableBody,
@@ -57,7 +58,20 @@ export default function AdminFinancePage() {
   });
 
   if (loadingOverview || !overview) {
-    return <Skeleton className="h-64 w-full" />;
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-6 md:grid-cols-3">
+          <StatCardSkeleton big />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          <CardBlockSkeleton />
+          <CardBlockSkeleton />
+        </div>
+        <TableSkeleton rows={6} cols={5} />
+      </div>
+    );
   }
 
   return (

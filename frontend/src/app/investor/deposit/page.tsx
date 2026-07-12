@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatCardSkeleton } from "@/components/skeletons";
 import {
   Dialog,
   DialogContent,
@@ -69,7 +70,7 @@ export default function DepositPage() {
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
 
-  const { data: portfolio } = useQuery({
+  const { data: portfolio, isLoading: loadingPortfolio } = useQuery({
     queryKey: ["portfolio"],
     queryFn: () => api.get<PortfolioOverview>("/api/portfolio"),
   });
@@ -150,21 +151,28 @@ export default function DepositPage() {
   return (
     <div className="space-y-6">
       {/* Headline stats */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="hairline-border gold-glow rounded-xl bg-card p-6">
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Available Cash</p>
-          <p className="font-serif-display mt-2 text-3xl text-primary">
-            {formatCurrency(portfolio?.cash_balance ?? 0)}
-          </p>
+      {loadingPortfolio ? (
+        <div className="grid gap-6 md:grid-cols-2">
+          <StatCardSkeleton big />
+          <StatCardSkeleton />
         </div>
-        <div className="hairline-border rounded-xl bg-card p-6">
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Total Deposited</p>
-          <p className="font-serif-display mt-2 text-2xl text-foreground">
-            {formatCurrency(totalDeposited)}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">Lifetime, approved deposits</p>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="hairline-border gold-glow rounded-xl bg-card p-6">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">Available Cash</p>
+            <p className="font-serif-display mt-2 text-3xl text-primary">
+              {formatCurrency(portfolio?.cash_balance ?? 0)}
+            </p>
+          </div>
+          <div className="hairline-border rounded-xl bg-card p-6">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">Total Deposited</p>
+            <p className="font-serif-display mt-2 text-2xl text-foreground">
+              {formatCurrency(totalDeposited)}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">Lifetime, approved deposits</p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* History + action */}
       <div className="hairline-border rounded-xl bg-card p-6">

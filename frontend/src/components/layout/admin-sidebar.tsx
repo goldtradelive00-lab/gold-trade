@@ -23,17 +23,29 @@ const nav = [
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
-export function AdminSidebar() {
+export function AdminSidebar({
+  className,
+  onNavigate,
+}: {
+  className?: string;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
   const router = useRouter();
 
   const logout = () => {
     clearAccessToken();
+    onNavigate?.();
     router.push("/login");
   };
 
   return (
-    <aside className="hidden h-full w-64 shrink-0 flex-col overflow-y-auto border-r border-border bg-sidebar px-4 py-6 md:flex">
+    <aside
+      className={cn(
+        "h-full w-64 shrink-0 flex-col overflow-y-auto border-r border-border bg-sidebar px-4 py-6",
+        className
+      )}
+    >
       <div className="px-2">
         <p className="font-serif-display text-lg tracking-widest text-primary">GOLDTRADE</p>
         <p className="text-xs uppercase tracking-wide text-muted-foreground">Admin Console</p>
@@ -46,6 +58,7 @@ export function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onNavigate}
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
                 active

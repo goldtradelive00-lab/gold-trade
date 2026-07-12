@@ -14,6 +14,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const { user, setUser } = useAuthStore();
   const [loading, setLoading] = useState(true);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,10 +56,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex h-screen min-h-0 flex-1 overflow-hidden bg-background">
-      <AdminSidebar />
+      <AdminSidebar className="hidden md:flex" />
+
+      {mobileNavOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div
+            className="absolute inset-0 bg-black/60"
+            onClick={() => setMobileNavOpen(false)}
+          />
+          <AdminSidebar
+            className="absolute inset-y-0 left-0 flex animate-in slide-in-from-left duration-200"
+            onNavigate={() => setMobileNavOpen(false)}
+          />
+        </div>
+      )}
+
       <div className="flex min-h-0 flex-1 flex-col">
-        <DashboardTopbar title="Admin Console" user={user} />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <DashboardTopbar title="Admin Console" user={user} onMenuClick={() => setMobileNavOpen(true)} />
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );

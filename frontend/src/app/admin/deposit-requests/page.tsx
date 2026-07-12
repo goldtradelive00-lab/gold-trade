@@ -7,7 +7,7 @@ import { api } from "@/lib/api";
 import { formatCurrency, getErrorMessage } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { TableSkeleton } from "@/components/skeletons";
 import { DetailRow } from "@/components/admin/detail-row";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -72,7 +72,7 @@ export default function AdminDepositRequestsPage() {
   };
 
   if (isLoading || !requests) {
-    return <Skeleton className="h-64 w-full" />;
+    return <TableSkeleton rows={5} cols={6} />;
   }
 
   const pending = requests.filter((r) => r.status === "pending");

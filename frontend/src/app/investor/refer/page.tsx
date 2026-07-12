@@ -9,6 +9,7 @@ import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatCardSkeleton } from "@/components/skeletons";
 import {
   Table,
   TableBody,
@@ -96,24 +97,31 @@ export default function ReferralPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="hairline-border rounded-xl bg-card p-6">
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Total Earned</p>
-          <p className="font-serif-display mt-2 text-3xl text-primary">
-            {formatCurrency(data?.total_earned ?? 0)}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">5% of every approved deposit</p>
+      {isLoading ? (
+        <div className="grid gap-6 md:grid-cols-2">
+          <StatCardSkeleton big />
+          <StatCardSkeleton big />
         </div>
-        <div className="hairline-border rounded-xl bg-card p-6">
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">
-            Investors Referred
-          </p>
-          <p className="font-serif-display mt-2 text-3xl text-foreground">
-            {data?.referred_users.length ?? 0}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">Joined using your link or code</p>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="hairline-border rounded-xl bg-card p-6">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">Total Earned</p>
+            <p className="font-serif-display mt-2 text-3xl text-primary">
+              {formatCurrency(data?.total_earned ?? 0)}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">5% of every approved deposit</p>
+          </div>
+          <div className="hairline-border rounded-xl bg-card p-6">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">
+              Investors Referred
+            </p>
+            <p className="font-serif-display mt-2 text-3xl text-foreground">
+              {data?.referred_users.length ?? 0}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">Joined using your link or code</p>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="hairline-border rounded-xl bg-card p-6">
         <h2 className="text-sm uppercase tracking-widest text-muted-foreground">

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { formatCurrency, getErrorMessage } from "@/lib/utils";
 import type { InvestorSummary } from "@/types/domain";
-import { Skeleton } from "@/components/ui/skeleton";
+import { TableSkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,7 +46,7 @@ export default function AdminInvestorsPage() {
   };
 
   if (isLoading || !investors) {
-    return <Skeleton className="h-64 w-full" />;
+    return <TableSkeleton rows={6} cols={5} />;
   }
 
   return (

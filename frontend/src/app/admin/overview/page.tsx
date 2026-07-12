@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
+import { StatCardSkeleton } from "@/components/skeletons";
 
 interface OverviewStats {
   total_investors: number;
@@ -19,7 +19,14 @@ export default function AdminOverviewPage() {
   });
 
   if (isLoading || !data) {
-    return <Skeleton className="h-40 w-full" />;
+    return (
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <StatCardSkeleton big />
+        <StatCardSkeleton />
+        <StatCardSkeleton />
+        <StatCardSkeleton />
+      </div>
+    );
   }
 
   return (

@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import type { InvestorDetail } from "@/types/domain";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TableSkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -27,7 +28,29 @@ export default function AdminInvestorDetailPage() {
   });
 
   if (isLoading || !investor) {
-    return <Skeleton className="h-64 w-full" />;
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-5 w-40" />
+        <div className="hairline-border rounded-xl bg-card p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <Skeleton className="h-7 w-40" />
+              <Skeleton className="mt-2 h-4 w-52" />
+            </div>
+            <Skeleton className="h-6 w-20 rounded-full" />
+          </div>
+          <div className="mt-6 grid grid-cols-2 gap-6 md:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i}>
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="mt-2 h-4 w-24" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <TableSkeleton rows={4} cols={4} />
+      </div>
+    );
   }
 
   return (

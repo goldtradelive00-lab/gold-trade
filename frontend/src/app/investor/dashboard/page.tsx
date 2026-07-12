@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import type { PortfolioOverview, Transaction } from "@/types/domain";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TableSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { GoldPriceChart } from "@/components/investor/gold-price-chart";
@@ -38,8 +39,33 @@ export default function InvestorDashboardPage() {
   if (isLoading || !portfolio) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-40 w-full" />
-        <Skeleton className="h-64 w-full" />
+        <div className="hairline-border rounded-xl bg-card p-6">
+          <Skeleton className="h-3 w-40" />
+          <Skeleton className="mt-3 h-9 w-56" />
+          <div className="mt-6 grid grid-cols-2 gap-6">
+            <div>
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="mt-2 h-5 w-28" />
+            </div>
+            <div>
+              <Skeleton className="h-3 w-32" />
+              <Skeleton className="mt-2 h-5 w-28" />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Skeleton className="h-72 lg:col-span-2" />
+          <div className="hairline-border rounded-xl bg-card p-6">
+            <Skeleton className="h-3 w-28" />
+            <div className="mt-4 flex flex-col gap-3">
+              <Skeleton className="h-9 w-full" />
+              <Skeleton className="h-9 w-full" />
+            </div>
+          </div>
+        </div>
+
+        <TableSkeleton rows={5} cols={4} />
       </div>
     );
   }
