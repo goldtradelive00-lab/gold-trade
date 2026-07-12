@@ -10,6 +10,7 @@ import { TableSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { GoldPriceChart } from "@/components/investor/gold-price-chart";
+import { useMarkSectionRead } from "@/lib/use-mark-section-read";
 import {
   Table,
   TableBody,
@@ -24,9 +25,11 @@ const TX_BADGE: Record<string, string> = {
   withdrawal: "bg-secondary text-secondary-foreground",
   referral_bonus: "bg-primary text-primary-foreground",
   daily_profit: "bg-primary text-primary-foreground",
+  admin_credit: "bg-primary text-primary-foreground",
 };
 
 export default function InvestorDashboardPage() {
+  useMarkSectionRead("dashboard");
   const { data: portfolio, isLoading } = useQuery({
     queryKey: ["portfolio"],
     queryFn: () => api.get<PortfolioOverview>("/api/portfolio"),

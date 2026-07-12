@@ -1,6 +1,6 @@
 export type UserRole = "investor" | "admin";
 export type KycStatus = "pending" | "verified" | "rejected";
-export type TransactionType = "deposit" | "withdrawal" | "referral_bonus" | "daily_profit";
+export type TransactionType = "deposit" | "withdrawal" | "referral_bonus" | "daily_profit" | "admin_credit";
 export type PermissionLevel = "super_admin" | "compliance_officer" | "support";
 
 export interface SessionUser {
