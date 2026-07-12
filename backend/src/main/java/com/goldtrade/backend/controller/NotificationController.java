@@ -49,4 +49,13 @@ public class NotificationController {
         }
         return ResponseEntity.ok(ApiResponse.success(null));
     }
+
+    // DELETE /api/notifications — clears every notification for the current user
+    @DeleteMapping
+    @Transactional
+    public ResponseEntity<ApiResponse<?>> clearAll(Authentication auth) {
+        String userId = (String) auth.getPrincipal();
+        notificationRepo.deleteByRecipientId(userId);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
 }

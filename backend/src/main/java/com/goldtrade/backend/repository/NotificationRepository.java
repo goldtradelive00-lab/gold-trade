@@ -18,4 +18,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Stri
     @Modifying
     @Query("update Notification n set n.isRead = true where n.recipientId = :recipientId and n.section = :section and n.isRead = false")
     void markSectionRead(@Param("recipientId") String recipientId, @Param("section") String section);
+
+    void deleteByRecipientId(String recipientId);
 }

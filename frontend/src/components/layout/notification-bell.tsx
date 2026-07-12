@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
 import { api } from "@/lib/api";
 import {
@@ -25,6 +25,7 @@ interface NotificationRow {
 }
 
 export function NotificationBell() {
+  const queryClient = useQueryClient();
   const { data: notifications } = useQuery({
     queryKey: ["notifications"],
     queryFn: () => api.get<NotificationRow[]>("/api/notifications"),
@@ -38,6 +39,12 @@ export function NotificationBell() {
 
   const unreadCount = unread?.count ?? 0;
   const list = notifications ?? [];
+
+  const clearAll = async () => {
+    await api.delete("/api/notifications");
+    queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
+  };
 
   return (
     <DropdownMenu>
@@ -55,7 +62,17 @@ export function NotificationBell() {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+        <div className="flex items-center justify-between px-2 py-1.5">
+          <DropdownMenuLabel className="p-0">Notifications</DropdownMenuLabel>
+          {list.length > 0 && (
+            <button
+              onClick={clearAll}
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Clear all
+            </button>
+          )}
+        </div>
         <DropdownMenuSeparator />
         {list.length === 0 ? (
           <p className="px-2 py-4 text-center text-sm text-muted-foreground">No notifications yet.</p>
