@@ -87,7 +87,7 @@ export default function AdminSettingsPage() {
           />
         </div>
         <Separator className="my-6" />
-        <Button onClick={saveWhatsapp} disabled={savingWhatsapp}>
+        <Button onClick={saveWhatsapp} loading={savingWhatsapp}>
           {savingWhatsapp ? "Saving..." : "Save Changes"}
         </Button>
       </div>

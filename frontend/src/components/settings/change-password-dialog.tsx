@@ -81,7 +81,7 @@ export function ChangePasswordDialog() {
           </div>
         </div>
         <DialogFooter>
-          <Button className="w-full sm:w-auto" onClick={submit} disabled={submitting}>
+          <Button className="w-full sm:w-auto" onClick={submit} loading={submitting}>
             {submitting ? "Updating..." : "Update Password"}
           </Button>
         </DialogFooter>

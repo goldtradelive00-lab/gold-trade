@@ -332,7 +332,7 @@ export default function DepositPage() {
                 <Button variant="outline" className="w-full sm:w-auto" onClick={() => setStep(1)}>
                   Back
                 </Button>
-                <Button className="w-full sm:w-auto" onClick={submit} disabled={submitting}>
+                <Button className="w-full sm:w-auto" onClick={submit} loading={submitting}>
                   {submitting ? "Submitting..." : "Submit Deposit Request"}
                 </Button>
               </DialogFooter>

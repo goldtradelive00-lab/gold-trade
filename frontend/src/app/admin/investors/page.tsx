@@ -47,24 +47,31 @@ export default function AdminInvestorsPage() {
   const [transferTarget, setTransferTarget] = useState<InvestorSummary | null>(null);
   const [amount, setAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [reviewingKey, setReviewingKey] = useState<string | null>(null);
 
   const approve = async (id: string) => {
+    setReviewingKey(`${id}:approve`);
     try {
       await api.post(`/api/admin/investors/${id}/approve`);
       toast.success("Investor approved");
       queryClient.invalidateQueries({ queryKey: ["admin", "investors"] });
     } catch (err) {
       toast.error(getErrorMessage(err));
+    } finally {
+      setReviewingKey(null);
     }
   };
 
   const reject = async (id: string) => {
+    setReviewingKey(`${id}:reject`);
     try {
       await api.post(`/api/admin/investors/${id}/reject`, { reason: "Did not meet membership criteria" });
       toast.success("Investor rejected");
       queryClient.invalidateQueries({ queryKey: ["admin", "investors"] });
     } catch (err) {
       toast.error(getErrorMessage(err));
+    } finally {
+      setReviewingKey(null);
     }
   };
 
@@ -153,15 +160,31 @@ export default function AdminInvestorsPage() {
                   <div className="flex justify-end gap-2">
                     {!inv.is_approved && inv.email_verified && (
                       <>
-                        <Button size="sm" onClick={() => approve(inv.id)}>
+                        <Button
+                          size="sm"
+                          onClick={() => approve(inv.id)}
+                          loading={reviewingKey === `${inv.id}:approve`}
+                          disabled={reviewingKey !== null && reviewingKey !== `${inv.id}:approve`}
+                        >
                           Approve
                         </Button>
-                        <Button size="sm" variant="outline" onClick={() => reject(inv.id)}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => reject(inv.id)}
+                          loading={reviewingKey === `${inv.id}:reject`}
+                          disabled={reviewingKey !== null && reviewingKey !== `${inv.id}:reject`}
+                        >
                           Reject
                         </Button>
                       </>
                     )}
-                    <Button size="sm" variant="outline" onClick={() => setTransferTarget(inv)}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setTransferTarget(inv)}
+                      disabled={reviewingKey !== null}
+                    >
                       Transfer Funds
                     </Button>
                   </div>
@@ -201,7 +224,7 @@ export default function AdminInvestorsPage() {
             <Button variant="outline" onClick={closeTransfer}>
               Cancel
             </Button>
-            <Button onClick={submitTransfer} disabled={submitting}>
+            <Button onClick={submitTransfer} loading={submitting}>
               {submitting ? "Transferring..." : "Transfer"}
             </Button>
           </DialogFooter>

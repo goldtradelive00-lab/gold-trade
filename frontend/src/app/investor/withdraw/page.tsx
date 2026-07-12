@@ -272,7 +272,7 @@ export default function WithdrawPage() {
             </p>
           </div>
           <DialogFooter>
-            <Button className="w-full sm:w-auto" onClick={submit} disabled={submitting}>
+            <Button className="w-full sm:w-auto" onClick={submit} loading={submitting}>
               {submitting ? "Submitting..." : "Submit Request"}
             </Button>
           </DialogFooter>

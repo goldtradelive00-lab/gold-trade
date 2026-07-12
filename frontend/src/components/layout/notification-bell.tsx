@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { getErrorMessage } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +29,7 @@ interface NotificationRow {
 
 export function NotificationBell() {
   const queryClient = useQueryClient();
+  const [clearing, setClearing] = useState(false);
   const { data: notifications } = useQuery({
     queryKey: ["notifications"],
     queryFn: () => api.get<NotificationRow[]>("/api/notifications"),
@@ -41,9 +45,16 @@ export function NotificationBell() {
   const list = notifications ?? [];
 
   const clearAll = async () => {
-    await api.delete("/api/notifications");
-    queryClient.invalidateQueries({ queryKey: ["notifications"] });
-    queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
+    setClearing(true);
+    try {
+      await api.delete("/api/notifications");
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setClearing(false);
+    }
   };
 
   return (
@@ -67,9 +78,10 @@ export function NotificationBell() {
           {list.length > 0 && (
             <button
               onClick={clearAll}
-              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+              disabled={clearing}
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
             >
-              Clear all
+              {clearing ? "Clearing..." : "Clear all"}
             </button>
           )}
         </div>

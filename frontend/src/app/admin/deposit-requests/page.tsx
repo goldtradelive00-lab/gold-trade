@@ -57,12 +57,15 @@ export default function AdminDepositRequestsPage() {
   useMarkSectionRead("admin_deposit");
   const queryClient = useQueryClient();
   const [viewing, setViewing] = useState<DepositRequestRow | null>(null);
+  const [reviewingKey, setReviewingKey] = useState<string | null>(null);
   const { data: requests, isLoading } = useQuery({
     queryKey: ["admin", "deposit-requests"],
     queryFn: () => api.get<DepositRequestRow[]>("/api/admin/deposit-requests"),
   });
 
   const review = async (id: string, action: "approve" | "reject") => {
+    const key = `${id}:${action}`;
+    setReviewingKey(key);
     try {
       await api.post(`/api/admin/deposit-requests/${id}/${action}`);
       toast.success(action === "approve" ? "Deposit approved" : "Deposit rejected");
@@ -70,6 +73,8 @@ export default function AdminDepositRequestsPage() {
       setViewing(null);
     } catch (err) {
       toast.error(getErrorMessage(err));
+    } finally {
+      setReviewingKey(null);
     }
   };
 
@@ -120,10 +125,21 @@ export default function AdminDepositRequestsPage() {
                   </Button>
                   {r.status === "pending" && (
                     <>
-                      <Button size="sm" onClick={() => review(r.id, "approve")}>
+                      <Button
+                        size="sm"
+                        onClick={() => review(r.id, "approve")}
+                        loading={reviewingKey === `${r.id}:approve`}
+                        disabled={reviewingKey !== null && reviewingKey !== `${r.id}:approve`}
+                      >
                         Approve
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => review(r.id, "reject")}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => review(r.id, "reject")}
+                        loading={reviewingKey === `${r.id}:reject`}
+                        disabled={reviewingKey !== null && reviewingKey !== `${r.id}:reject`}
+                      >
                         Reject
                       </Button>
                     </>
@@ -196,10 +212,21 @@ export default function AdminDepositRequestsPage() {
           )}
           {viewing?.status === "pending" && (
             <DialogFooter>
-              <Button variant="outline" className="w-full sm:w-auto" onClick={() => review(viewing.id, "reject")}>
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={() => review(viewing.id, "reject")}
+                loading={reviewingKey === `${viewing.id}:reject`}
+                disabled={reviewingKey !== null && reviewingKey !== `${viewing.id}:reject`}
+              >
                 Reject
               </Button>
-              <Button className="w-full sm:w-auto" onClick={() => review(viewing.id, "approve")}>
+              <Button
+                className="w-full sm:w-auto"
+                onClick={() => review(viewing.id, "approve")}
+                loading={reviewingKey === `${viewing.id}:approve`}
+                disabled={reviewingKey !== null && reviewingKey !== `${viewing.id}:approve`}
+              >
                 Approve
               </Button>
             </DialogFooter>
