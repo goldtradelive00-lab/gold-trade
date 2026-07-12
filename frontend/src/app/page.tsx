@@ -35,7 +35,7 @@ export default function LandingPage() {
             </h1>
             <p className="mt-6 max-w-md text-muted-foreground">
               Deposit through your favourite bank or mobile wallet, earn 1% profit on your
-              principal every day, and track live Pakistan gold rates — all from one simple
+              principal every day, and track live Pakistan gold rates, all from one simple
               dashboard.
             </p>
             <div className="mt-8 flex gap-4">
@@ -50,7 +50,7 @@ export default function LandingPage() {
 
           <div className="hairline-border rounded-xl bg-card p-6">
             <p className="text-xs uppercase tracking-widest text-muted-foreground">
-              Gold Rate — Pakistan · 24K / Tola
+              Gold Rate: Pakistan · 24K / Tola
             </p>
             <p className="font-serif-display mt-2 text-3xl text-primary">Rs 429,208.13</p>
             <div className="relative mt-6 h-24 overflow-hidden rounded-md">
@@ -109,12 +109,12 @@ export default function LandingPage() {
             <FeatureCard
               icon={<Wallet className="size-5 text-primary" />}
               title="Deposit Your Way"
-              body="Send funds from JazzCash, Easypaisa, NayaPay, SadaPay, or any major Pakistani bank — then confirm your receipt over WhatsApp."
+              body="Send funds from JazzCash, Easypaisa, NayaPay, SadaPay, or any major Pakistani bank, then confirm your receipt over WhatsApp."
             />
             <FeatureCard
               icon={<TrendingUp className="size-5 text-primary" />}
               title="Earn 1% Daily"
-              body="Once approved, your deposit starts earning 1% profit every day, credited straight to your cash balance — simple and transparent, no compounding tricks."
+              body="Once approved, your deposit starts earning 1% profit every day, credited straight to your cash balance: simple and transparent, no compounding tricks."
             />
             <FeatureCard
               icon={<Users className="size-5 text-primary" />}
@@ -137,7 +137,7 @@ export default function LandingPage() {
             <p className="font-serif-display text-5xl text-primary/40">&rdquo;</p>
             <blockquote className="font-serif-display text-xl italic leading-relaxed text-foreground md:text-2xl">
               I deposited through Easypaisa, confirmed my receipt on WhatsApp, and my profit
-              started showing up the very next day. Referring two friends made it even better —
+              started showing up the very next day. Referring two friends made it even better:
               their deposits earn me a bonus too.
             </blockquote>
             <p className="mt-6 text-xs uppercase tracking-widest text-primary">Sara Ahmed</p>
@@ -156,12 +156,12 @@ export default function LandingPage() {
               <FeatureCard
                 icon={<MessageCircleMore className="size-5 text-primary" />}
                 title="Manual Verification"
-                body="Every deposit receipt is checked by our team on WhatsApp before your account is credited — no automated guesswork."
+                body="Every deposit receipt is checked by our team on WhatsApp before your account is credited, no automated guesswork."
               />
               <FeatureCard
                 icon={<Lock className="size-5 text-primary" />}
                 title="Secure Account Access"
-                body="Passwords are encrypted end-to-end, and every session is protected — your account details stay yours alone."
+                body="Passwords are encrypted end-to-end, and every session is protected: your account details stay yours alone."
               />
               <FeatureCard
                 icon={<ShieldCheck className="size-5 text-primary" />}

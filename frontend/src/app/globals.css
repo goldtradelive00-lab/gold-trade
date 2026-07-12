@@ -49,10 +49,10 @@
 }
 
 /*
-  GoldTrade design system — ported from the Stitch "Aureate Private Wealth"
+  GoldTrade design system, ported from the Stitch "Aureate Private Wealth"
   export (DESIGN.md). Dark-only "quiet luxury" theme: deep charcoal canvas,
   disciplined champagne-gold accent, hairline borders instead of shadows.
-  There is no light theme — :root and .dark carry identical values, and
+  There is no light theme: :root and .dark carry identical values, and
   <html> is forced to class="dark" in the root layout.
 */
 :root,

@@ -67,7 +67,7 @@ export default function AdminInvestorsPage() {
             <TableRow key={inv.id}>
               <TableCell>
                 <Link href={`/admin/investors/${inv.id}`} className="text-foreground hover:text-primary">
-                  {inv.full_name || "—"}
+                  {inv.full_name || "N/A"}
                 </Link>
               </TableCell>
               <TableCell className="text-muted-foreground">{inv.email}</TableCell>

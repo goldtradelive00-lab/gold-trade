@@ -171,7 +171,7 @@ export default function AdminDepositRequestsPage() {
             <div className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-4">
               <DetailRow label="Investor" value={viewing.customer} />
               <DetailRow label="Email" value={viewing.email} />
-              <DetailRow label="Phone" value={viewing.phone_number || "—"} />
+              <DetailRow label="Phone" value={viewing.phone_number || "N/A"} />
               <DetailRow
                 label="Amount"
                 value={<span className="font-serif-display text-primary">{formatCurrency(viewing.amount)}</span>}
@@ -188,7 +188,7 @@ export default function AdminDepositRequestsPage() {
               />
               {viewing.reviewed_at && (
                 <>
-                  <DetailRow label="Reviewed By" value={viewing.reviewed_by_name || "—"} />
+                  <DetailRow label="Reviewed By" value={viewing.reviewed_by_name || "N/A"} />
                   <DetailRow label="Reviewed At" value={new Date(viewing.reviewed_at).toLocaleString()} />
                 </>
               )}

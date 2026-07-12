@@ -199,7 +199,7 @@ export default function ReferralPage() {
             <h3 className="mt-4 font-medium text-foreground">You Earn 5%</h3>
             <p className="mt-2 text-sm text-muted-foreground">
               As soon as their deposit is approved, 5% of it is credited straight to your
-              balance — no limit on how many friends you refer.
+              balance, with no limit on how many friends you refer.
             </p>
           </div>
         </div>

@@ -32,7 +32,7 @@ export default function VerifyEmailPendingPage() {
     setSending(true);
     try {
       await api.post("/api/auth/resend-verification", { email });
-      toast.success("Verification email sent — check your inbox");
+      toast.success("Verification email sent, check your inbox");
       setCooldown(RESEND_COOLDOWN_S);
     } catch (err) {
       toast.error(getErrorMessage(err));

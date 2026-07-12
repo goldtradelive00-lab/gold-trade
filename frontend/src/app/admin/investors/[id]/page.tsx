@@ -65,7 +65,7 @@ export default function AdminInvestorDetailPage() {
       <div className="hairline-border rounded-xl bg-card p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-serif-display text-2xl text-foreground">{investor.full_name || "—"}</h1>
+            <h1 className="font-serif-display text-2xl text-foreground">{investor.full_name || "N/A"}</h1>
             <p className="text-sm text-muted-foreground">{investor.email}</p>
           </div>
           {investor.is_approved ? (
@@ -78,7 +78,7 @@ export default function AdminInvestorDetailPage() {
         <div className="mt-6 grid grid-cols-2 gap-6 text-sm md:grid-cols-4">
           <Stat label="Portfolio Value" value={formatCurrency(investor.portfolio_total_value)} />
           <Stat label="KYC Status" value={investor.kyc_status} />
-          <Stat label="Phone" value={investor.phone_number || "—"} />
+          <Stat label="Phone" value={investor.phone_number || "N/A"} />
           <Stat label="Member Since" value={new Date(investor.created_at).toLocaleDateString()} />
         </div>
       </div>

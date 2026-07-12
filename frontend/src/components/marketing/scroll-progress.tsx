@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 /**
  * Thin progress bar showing how far the visitor has scrolled through the
  * page. Uses a rAF lerp loop (instead of binding width directly to the
- * scroll event) so the fill eases toward the target instead of jumping —
+ * scroll event) so the fill eases toward the target instead of jumping,
  * noticeably smoother on trackpads/fast wheel scrolls.
  */
 export function ScrollProgress() {
@@ -20,8 +20,8 @@ export function ScrollProgress() {
       const docHeight = document.documentElement.scrollHeight - window.innerHeight;
       target.current = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
 
-      // rAF is throttled by the browser while the tab is hidden/backgrounded —
-      // apply the value directly in that case instead of silently stalling.
+      // rAF is throttled by the browser while the tab is hidden/backgrounded,
+      // so apply the value directly in that case instead of silently stalling.
       if (document.hidden && barRef.current) {
         current.current = target.current;
         barRef.current.style.width = `${current.current}%`;

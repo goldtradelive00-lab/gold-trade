@@ -140,7 +140,7 @@ export default function DepositPage() {
         account_number: form.accountNumber,
         sender_whatsapp: form.senderWhatsapp,
       });
-      toast.success("Deposit request submitted — please allow up to 24 hours for approval.");
+      toast.success("Deposit request submitted. Please allow up to 24 hours for approval.");
       queryClient.invalidateQueries({ queryKey: ["portfolio", "deposit-requests"] });
       closeDialog();
     } catch (err) {
@@ -224,7 +224,7 @@ export default function DepositPage() {
           {step === 1 ? (
             <>
               <DialogHeader>
-                <DialogTitle>Deposit Funds — Step 1 of 2</DialogTitle>
+                <DialogTitle>Deposit Funds (Step 1 of 2)</DialogTitle>
                 <DialogDescription>Enter the amount and the account you sent it from.</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
@@ -290,7 +290,7 @@ export default function DepositPage() {
           ) : (
             <>
               <DialogHeader>
-                <DialogTitle>Deposit Funds — Step 2 of 2</DialogTitle>
+                <DialogTitle>Deposit Funds (Step 2 of 2)</DialogTitle>
                 <DialogDescription>Attach evidence of your transfer.</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">

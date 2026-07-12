@@ -1,5 +1,5 @@
 // Local storage of the backend-issued JWT (see AuthController#login).
-// GoldTrade owns auth end-to-end — no Supabase Auth session involved.
+// GoldTrade owns auth end-to-end, no Supabase Auth session involved.
 
 const TOKEN_KEY = "gt-access-token";
 

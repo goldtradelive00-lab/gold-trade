@@ -273,7 +273,7 @@ public class AuthController {
         userRepo.save(user);
 
         return ResponseEntity.ok(ApiResponse.success(null,
-                "Email verified. Your account is now active — you can log in."));
+                "Email verified. Your account is now active, you can log in."));
     }
 
     // POST /api/auth/forgot-password

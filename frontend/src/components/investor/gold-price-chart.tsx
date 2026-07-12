@@ -102,7 +102,7 @@ export function GoldPriceChart() {
     return (
       <div className="hairline-border rounded-xl bg-card p-6">
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground">
-          Gold Rate — Pakistan · 24K / Tola
+          Gold Rate: Pakistan · 24K / Tola
         </h2>
         <p className="mt-4 text-sm text-muted-foreground">
           Live gold rate is temporarily unavailable. Please try again shortly.
@@ -115,7 +115,7 @@ export function GoldPriceChart() {
     return (
       <div className="hairline-border gold-glow rounded-xl bg-card p-6">
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground">
-          Gold Rate — Pakistan · 24K / Tola
+          Gold Rate: Pakistan · 24K / Tola
         </h2>
         <Skeleton className="mt-4 h-64 w-full" />
       </div>
@@ -134,7 +134,7 @@ export function GoldPriceChart() {
               <span className="relative inline-flex size-2 rounded-full bg-primary" />
             </span>
             <h2 className="text-xs uppercase tracking-widest text-muted-foreground">
-              Gold Rate — Pakistan · 24K / Tola
+              Gold Rate: Pakistan · 24K / Tola
             </h2>
           </div>
           <p className="font-serif-display mt-3 text-3xl text-primary">
