@@ -14,7 +14,7 @@ export function AuthCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden bg-background px-6 py-16">
+    <div className="relative flex flex-1 flex-col items-center overflow-y-auto bg-background px-6 py-16">
       {backgroundImage && (
         <>
           <Image src={backgroundImage} alt="" fill priority className="object-cover" />
