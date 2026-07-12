@@ -207,10 +207,10 @@ export default function LandingPage() {
             <FooterColumn
               title="Product"
               links={[
-                { label: "Portfolio", href: "/product/portfolio" },
-                { label: "Yield Optimization", href: "/product/yield-optimization" },
-                { label: "Tax Efficiency", href: "/product/tax-efficiency" },
-                { label: "Security Architecture", href: "/product/security-architecture" },
+                { label: "Dashboard", href: "/product/dashboard" },
+                { label: "Daily Profit", href: "/product/daily-profit" },
+                { label: "Referral Program", href: "/product/referral-program" },
+                { label: "Security & Verification", href: "/product/security-architecture" },
               ]}
             />
             <FooterColumn
