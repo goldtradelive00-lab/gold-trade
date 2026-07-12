@@ -22,6 +22,7 @@ import java.util.Map;
  *  POST /api/auth/resend-verification→ 5 req / 60s  per IP
  *  POST /api/auth/login              → 10 req / 60s per IP
  *  POST /api/auth/forgot-password    → 5 req / 60s  per IP
+ *  POST /api/auth/refresh            → 30 req / 60s per IP (silent refresh across tabs/devices)
  */
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
@@ -53,6 +54,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 allowed = rateLimitService.isAllowed(ip + ":" + path, 5, 60_000);
             } else if (path.startsWith("/api/auth/login")) {
                 allowed = rateLimitService.isAllowed(ip + ":" + path, 10, 60_000);
+            } else if (path.startsWith("/api/auth/refresh")) {
+                allowed = rateLimitService.isAllowed(ip + ":" + path, 30, 60_000);
             }
         }
 

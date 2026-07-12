@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { AdminSidebar } from "@/components/layout/admin-sidebar";
 import { DashboardTopbar } from "@/components/layout/dashboard-topbar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getAccessToken, clearAccessToken } from "@/lib/session";
+import { getAccessToken, clearSessionTokens } from "@/lib/session";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth-store";
 import type { SessionUser } from "@/types/domain";
@@ -49,7 +49,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         setUser(me);
         setLoading(false);
       } catch {
-        clearAccessToken();
+        clearSessionTokens();
         router.replace("/login");
       }
     }

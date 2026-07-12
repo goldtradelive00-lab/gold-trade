@@ -10,7 +10,7 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
-import { clearAccessToken } from "@/lib/session";
+import { logout as logoutRequest } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 const nav = [
@@ -31,8 +31,8 @@ export function InvestorSidebar({
   const pathname = usePathname();
   const router = useRouter();
 
-  const logout = () => {
-    clearAccessToken();
+  const logout = async () => {
+    await logoutRequest();
     onNavigate?.();
     router.push("/login");
   };

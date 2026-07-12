@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
-import { setAccessToken } from "@/lib/session";
+import { setSessionTokens } from "@/lib/session";
 import { useAuthStore } from "@/stores/auth-store";
 import { getErrorMessage } from "@/lib/utils";
 import type { SessionUser } from "@/types/domain";
@@ -27,6 +27,7 @@ type FormValues = z.infer<typeof schema>;
 
 interface LoginResponse {
   access_token: string;
+  refresh_token: string;
   user: SessionUser;
 }
 
@@ -43,8 +44,8 @@ export default function LoginPage() {
   const onSubmit = async (values: FormValues) => {
     setSubmitting(true);
     try {
-      const { access_token, user } = await api.post<LoginResponse>("/api/auth/login", values);
-      setAccessToken(access_token);
+      const { access_token, refresh_token, user } = await api.post<LoginResponse>("/api/auth/login", values);
+      setSessionTokens(access_token, refresh_token);
       setUser(user);
       toast.success(`Welcome back, ${user.full_name || user.email}`);
       router.push(user.role === "admin" ? "/admin/overview" : "/investor/dashboard");

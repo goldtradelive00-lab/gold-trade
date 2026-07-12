@@ -58,6 +58,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/auth/verify-email").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
                 // Admin-only management endpoints
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 // Everything else requires a valid Supabase JWT

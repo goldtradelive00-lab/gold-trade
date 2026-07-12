@@ -1,4 +1,4 @@
-import { getAccessToken } from "@/lib/session";
+import { getAccessToken, getRefreshToken, setSessionTokens, clearSessionTokens } from "@/lib/session";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
@@ -17,7 +17,35 @@ type ApiEnvelope<T> = {
   error?: string;
 };
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+// Access tokens are short-lived (15 min) by design — a leaked one expires fast.
+// When one is rejected, we silently trade the refresh token for a new pair and
+// retry the original request once. Concurrent 401s share a single in-flight
+// refresh instead of each racing to rotate the same refresh token.
+let refreshPromise: Promise<boolean> | null = null;
+
+async function refreshAccessToken(): Promise<boolean> {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return false;
+
+  try {
+    const res = await fetch(`${API_URL}/api/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+    const body: ApiEnvelope<{ access_token: string; refresh_token: string }> = await res.json();
+    if (!res.ok || !body.success || !body.data) {
+      clearSessionTokens();
+      return false;
+    }
+    setSessionTokens(body.data.access_token, body.data.refresh_token);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function request<T>(path: string, options: RequestInit = {}, isRetry = false): Promise<T> {
   const token = getAccessToken();
 
   const headers: Record<string, string> = {
@@ -29,6 +57,24 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
 
   const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+
+  if (res.status === 401 && !isRetry && path !== "/api/auth/refresh") {
+    if (!refreshPromise) {
+      refreshPromise = refreshAccessToken().finally(() => {
+        refreshPromise = null;
+      });
+    }
+    const refreshed = await refreshPromise;
+    if (refreshed) {
+      return request<T>(path, options, true);
+    }
+    clearSessionTokens();
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
+    throw new ApiError("Session expired. Please log in again.", 401);
+  }
+
   const body: ApiEnvelope<T> = await res.json();
 
   if (!res.ok || !body.success) {

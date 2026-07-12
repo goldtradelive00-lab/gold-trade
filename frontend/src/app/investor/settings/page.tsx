@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ChangePasswordDialog } from "@/components/settings/change-password-dialog";
-import { clearAccessToken } from "@/lib/session";
+import { logout as logoutRequest } from "@/lib/auth";
 import { useAuthStore } from "@/stores/auth-store";
 
 export default function InvestorSettingsPage() {
@@ -18,8 +18,8 @@ export default function InvestorSettingsPage() {
     toast.success("Settings saved");
   };
 
-  const logOut = () => {
-    clearAccessToken();
+  const logOut = async () => {
+    await logoutRequest();
     router.push("/login");
   };
 

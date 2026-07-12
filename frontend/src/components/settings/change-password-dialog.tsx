@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { getErrorMessage } from "@/lib/utils";
+import { clearSessionTokens } from "@/lib/session";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -18,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 
 export function ChangePasswordDialog() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -41,8 +44,12 @@ export function ChangePasswordDialog() {
     setSubmitting(true);
     try {
       await api.put("/api/auth/change-password", { new_password: newPassword });
-      toast.success("Password updated successfully");
+      toast.success("Password updated. Please log in again with your new password.");
       closeDialog();
+      // Changing your password revokes every session server-side, so this
+      // one needs to end too rather than silently breaking on its next refresh.
+      clearSessionTokens();
+      router.push("/login");
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {

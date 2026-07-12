@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { NotificationBell } from "@/components/layout/notification-bell";
-import { clearAccessToken } from "@/lib/session";
+import { logout as logoutRequest } from "@/lib/auth";
 import type { SessionUser } from "@/types/domain";
 
 export function DashboardTopbar({
@@ -34,8 +34,8 @@ export function DashboardTopbar({
 
   const settingsHref = user?.role === "admin" ? "/admin/settings" : "/investor/settings";
 
-  const logout = () => {
-    clearAccessToken();
+  const logout = async () => {
+    await logoutRequest();
     router.push("/login");
   };
 

@@ -8,7 +8,9 @@ import com.goldtrade.backend.repository.PortfolioRepository;
 import com.goldtrade.backend.repository.TransactionRepository;
 import com.goldtrade.backend.repository.UserRepository;
 import com.goldtrade.backend.service.EmailService;
+import com.goldtrade.backend.service.RefreshTokenService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -25,15 +27,18 @@ public class AdminInvestorController {
     private final PortfolioRepository portfolioRepo;
     private final TransactionRepository transactionRepo;
     private final EmailService emailService;
+    private final RefreshTokenService refreshTokenService;
 
     public AdminInvestorController(UserRepository userRepo,
                                     PortfolioRepository portfolioRepo,
                                     TransactionRepository transactionRepo,
-                                    EmailService emailService) {
+                                    EmailService emailService,
+                                    RefreshTokenService refreshTokenService) {
         this.userRepo = userRepo;
         this.portfolioRepo = portfolioRepo;
         this.transactionRepo = transactionRepo;
         this.emailService = emailService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     // GET /api/admin/investors — list all customers with portfolio total
@@ -77,6 +82,7 @@ public class AdminInvestorController {
     }
 
     // POST /api/admin/investors/{id}/reject
+    @Transactional
     @PostMapping("/{id}/reject")
     public ResponseEntity<ApiResponse<?>> reject(@PathVariable String id, @RequestBody(required = false) Map<String, Object> body) {
         User customer = userRepo.findById(id)
@@ -85,6 +91,7 @@ public class AdminInvestorController {
         customer.setIsApproved(false);
         customer.setRejectionReason(reason);
         userRepo.save(customer);
+        refreshTokenService.revokeAllForUser(customer.getId());
 
         try {
             emailService.sendRejectionEmail(customer.getEmail(),

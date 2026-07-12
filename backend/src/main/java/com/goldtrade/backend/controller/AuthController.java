@@ -13,10 +13,12 @@ import com.goldtrade.backend.repository.PortfolioRepository;
 import com.goldtrade.backend.repository.UserRepository;
 import com.goldtrade.backend.security.JwtService;
 import com.goldtrade.backend.service.EmailService;
+import com.goldtrade.backend.service.RefreshTokenService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.SecureRandom;
@@ -37,6 +39,7 @@ public class AuthController {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
 
     public AuthController(UserRepository userRepo,
                            AdminRepository adminRepo,
@@ -44,7 +47,8 @@ public class AuthController {
                            PasswordResetTokenRepository resetTokenRepo,
                            EmailService emailService,
                            PasswordEncoder passwordEncoder,
-                           JwtService jwtService) {
+                           JwtService jwtService,
+                           RefreshTokenService refreshTokenService) {
         this.userRepo = userRepo;
         this.adminRepo = adminRepo;
         this.portfolioRepo = portfolioRepo;
@@ -52,6 +56,7 @@ public class AuthController {
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     // POST /api/auth/register — join the platform
@@ -155,8 +160,10 @@ public class AuthController {
             adminRepo.save(admin);
 
             String token = jwtService.generateToken(admin.getId(), "admin", admin.getEmail());
+            String refreshToken = refreshTokenService.issueForAdmin(admin.getId()).rawToken();
             return ResponseEntity.ok(ApiResponse.success(Map.of(
                     "access_token", token,
+                    "refresh_token", refreshToken,
                     "user", Map.of(
                             "id", admin.getId(),
                             "email", admin.getEmail(),
@@ -183,8 +190,10 @@ public class AuthController {
         userRepo.save(user);
 
         String token = jwtService.generateToken(user.getId(), "investor", user.getEmail());
+        String refreshToken = refreshTokenService.issueForUser(user.getId()).rawToken();
         return ResponseEntity.ok(ApiResponse.success(Map.of(
                 "access_token", token,
+                "refresh_token", refreshToken,
                 "user", Map.of(
                         "id", user.getId(),
                         "email", user.getEmail(),
@@ -195,7 +204,53 @@ public class AuthController {
         )));
     }
 
+    // POST /api/auth/refresh — trades a valid (unused) refresh token for a new short-lived
+    // access token, rotating the refresh token in the same call.
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<?>> refresh(@RequestBody Map<String, Object> body) {
+        String rawRefreshToken = (String) body.get("refresh_token");
+        if (rawRefreshToken == null || rawRefreshToken.isBlank()) {
+            throw new BadRequestException("Refresh token is required");
+        }
+
+        RefreshTokenService.RotatedToken rotated = refreshTokenService.rotate(rawRefreshToken);
+
+        String accessToken;
+        if (rotated.adminId() != null) {
+            Admin admin = adminRepo.findById(rotated.adminId())
+                    .orElseThrow(() -> new BadRequestException("Invalid or expired refresh token"));
+            accessToken = jwtService.generateToken(admin.getId(), "admin", admin.getEmail());
+        } else {
+            User user = userRepo.findById(rotated.userId())
+                    .orElseThrow(() -> new BadRequestException("Invalid or expired refresh token"));
+            // Re-check standing on every refresh: an investor rejected/suspended after their
+            // last login must not be able to keep renewing access via an old refresh token.
+            if (!Boolean.TRUE.equals(user.getEmailVerified()) || !Boolean.TRUE.equals(user.getIsApproved())) {
+                refreshTokenService.revoke(rotated.rawToken());
+                throw new BadRequestException("Your account is no longer active. Please contact support.");
+            }
+            accessToken = jwtService.generateToken(user.getId(), "investor", user.getEmail());
+        }
+
+        return ResponseEntity.ok(ApiResponse.success(Map.of(
+                "access_token", accessToken,
+                "refresh_token", rotated.rawToken()
+        )));
+    }
+
+    // POST /api/auth/logout — revokes the refresh token so the session can't be silently
+    // renewed again; the short-lived access token still in flight simply expires on its own.
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<?>> logout(@RequestBody(required = false) Map<String, Object> body) {
+        String rawRefreshToken = body != null ? (String) body.get("refresh_token") : null;
+        if (rawRefreshToken != null && !rawRefreshToken.isBlank()) {
+            refreshTokenService.revoke(rawRefreshToken);
+        }
+        return ResponseEntity.ok(ApiResponse.success(null, "Logged out"));
+    }
+
     // PUT /api/auth/change-password — investor or admin changes their own password while logged in
+    @Transactional
     @PutMapping("/change-password")
     public ResponseEntity<ApiResponse<?>> changePassword(@RequestBody Map<String, Object> body, Authentication auth) {
         String newPassword = (String) body.get("new_password");
@@ -213,14 +268,17 @@ public class AuthController {
                     .orElseThrow(() -> new ResourceNotFoundException("Profile not found"));
             admin.setPasswordHash(encoded);
             adminRepo.save(admin);
+            refreshTokenService.revokeAllForAdmin(id);
         } else {
             User user = userRepo.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Profile not found"));
             user.setPasswordHash(encoded);
             userRepo.save(user);
+            refreshTokenService.revokeAllForUser(id);
         }
 
-        return ResponseEntity.ok(ApiResponse.success(null, "Password updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null,
+                "Password updated successfully. Please log in again with your new password."));
     }
 
     // POST /api/auth/send-verification
@@ -310,6 +368,7 @@ public class AuthController {
     }
 
     // POST /api/auth/reset-password
+    @Transactional
     @PostMapping("/reset-password")
     public ResponseEntity<ApiResponse<?>> resetPassword(@RequestBody Map<String, Object> body) {
         String token = (String) body.get("token");
@@ -330,11 +389,13 @@ public class AuthController {
                     .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
             user.setPasswordHash(encoded);
             userRepo.save(user);
+            refreshTokenService.revokeAllForUser(user.getId());
         } else {
             Admin admin = adminRepo.findById(resetToken.getAdminId())
                     .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
             admin.setPasswordHash(encoded);
             adminRepo.save(admin);
+            refreshTokenService.revokeAllForAdmin(admin.getId());
         }
         resetTokenRepo.delete(resetToken);
 

@@ -15,11 +15,15 @@ import java.util.Date;
 /**
  * Issues and validates GoldTrade's own JWTs (HS256). Replaces Supabase Auth —
  * the backend is the single source of truth for credentials and sessions.
+ *
+ * Access tokens are deliberately short-lived: a leaked token is only useful for
+ * a few minutes rather than days. Long-lived sessions are handled by the
+ * separate, DB-backed, revocable refresh token (see RefreshTokenService).
  */
 @Service
 public class JwtService {
 
-    private static final Duration TOKEN_TTL = Duration.ofDays(7);
+    private static final Duration TOKEN_TTL = Duration.ofMinutes(15);
 
     private final SecretKey key;
 
