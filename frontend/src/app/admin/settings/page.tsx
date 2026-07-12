@@ -45,7 +45,7 @@ export default function AdminSettingsPage() {
   };
 
   return (
-    <div className="max-w-xl space-y-6">
+    <div className="grid gap-6 md:grid-cols-2">
       <div className="hairline-border rounded-xl bg-card p-6">
         <h2 className="text-sm uppercase tracking-widest text-muted-foreground">Profile</h2>
         <div className="mt-4 space-y-4">
@@ -70,14 +70,14 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
-      <div className="hairline-border rounded-xl bg-card p-6">
+      <div className="hairline-border rounded-xl bg-card p-6 md:col-span-2">
         <h2 className="text-sm uppercase tracking-widest text-muted-foreground">
           Deposit Receipts
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Investors are shown this WhatsApp number to send their deposit receipt screenshots to.
         </p>
-        <div className="mt-4 space-y-2">
+        <div className="mt-4 max-w-sm space-y-2">
           <Label htmlFor="whatsapp_number">WhatsApp Number</Label>
           <Input
             id="whatsapp_number"

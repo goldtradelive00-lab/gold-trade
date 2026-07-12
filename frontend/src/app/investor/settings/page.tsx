@@ -24,7 +24,7 @@ export default function InvestorSettingsPage() {
   };
 
   return (
-    <div className="max-w-xl space-y-6">
+    <div className="grid gap-6 md:grid-cols-2">
       <div className="hairline-border rounded-xl bg-card p-6">
         <h2 className="text-sm uppercase tracking-widest text-muted-foreground">Profile</h2>
         <div className="mt-4 space-y-4">
