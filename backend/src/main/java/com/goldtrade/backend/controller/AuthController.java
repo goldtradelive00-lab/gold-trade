@@ -281,6 +281,37 @@ public class AuthController {
                 "Password updated successfully. Please log in again with your new password."));
     }
 
+    // PUT /api/auth/profile — update the current account's editable profile fields (name only;
+    // email is immutable here). Works for both investors and admins.
+    @PutMapping("/profile")
+    public ResponseEntity<ApiResponse<?>> updateProfile(@RequestBody Map<String, Object> body, Authentication auth) {
+        String fullName = body.get("full_name") == null ? "" : body.get("full_name").toString().trim();
+        if (fullName.isEmpty()) {
+            throw new BadRequestException("Full name is required");
+        }
+        if (fullName.length() > 120) {
+            throw new BadRequestException("Full name is too long");
+        }
+
+        String id = (String) auth.getPrincipal();
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (isAdmin) {
+            Admin admin = adminRepo.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Profile not found"));
+            admin.setFullName(fullName);
+            adminRepo.save(admin);
+        } else {
+            User user = userRepo.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Profile not found"));
+            user.setFullName(fullName);
+            userRepo.save(user);
+        }
+
+        return ResponseEntity.ok(ApiResponse.success(Map.of("full_name", fullName), "Profile updated"));
+    }
+
     // POST /api/auth/send-verification
     @PostMapping("/send-verification")
     public ResponseEntity<ApiResponse<?>> sendVerification(@RequestBody Map<String, Object> body) {

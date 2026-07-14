@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { api } from "@/lib/api";
+import { getErrorMessage } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,10 +15,27 @@ import { useAuthStore } from "@/stores/auth-store";
 export default function InvestorSettingsPage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
+  const [fullName, setFullName] = useState(user?.full_name ?? "");
+  const [saving, setSaving] = useState(false);
 
-  const saveProfile = () => {
-    // Persist profile fields via the backend once the endpoint is wired up.
-    toast.success("Settings saved");
+  const saveProfile = async () => {
+    const trimmed = fullName.trim();
+    if (!trimmed) {
+      toast.error("Full name is required");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await api.put<{ full_name: string }>("/api/auth/profile", { full_name: trimmed });
+      if (user) setUser({ ...user, full_name: res.full_name });
+      setFullName(res.full_name);
+      toast.success("Profile updated");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const logOut = async () => {
@@ -30,13 +50,19 @@ export default function InvestorSettingsPage() {
         <div className="mt-4 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="full_name">Full Name</Label>
-            <Input id="full_name" defaultValue={user?.full_name ?? ""} />
+            <Input
+              id="full_name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" defaultValue={user?.email ?? ""} disabled />
           </div>
-          <Button onClick={saveProfile}>Save Changes</Button>
+          <Button onClick={saveProfile} loading={saving}>
+            {saving ? "Saving..." : "Save Changes"}
+          </Button>
         </div>
       </div>
 

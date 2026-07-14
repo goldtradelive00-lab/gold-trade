@@ -3,7 +3,9 @@ package com.goldtrade.backend.service;
 import com.goldtrade.backend.entity.RefreshToken;
 import com.goldtrade.backend.exception.BadRequestException;
 import com.goldtrade.backend.repository.RefreshTokenRepository;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -13,6 +15,7 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Base64;
+import java.util.logging.Logger;
 
 // Issues, validates, and rotates refresh tokens. The raw token is handed to the
 // client once and never persisted — only its SHA-256 hash lives in the database,
@@ -23,13 +26,28 @@ import java.util.Base64;
 @Service
 public class RefreshTokenService {
 
+    private static final Logger log = Logger.getLogger(RefreshTokenService.class.getName());
     private static final Duration REFRESH_TOKEN_TTL = Duration.ofDays(30);
+    // Revoked tokens are kept this long before purging so a reused (already-rotated) token
+    // still surfaces as a revoked row rather than a bare "not found".
+    private static final Duration REVOKED_RETENTION = Duration.ofDays(7);
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final RefreshTokenRepository repo;
 
     public RefreshTokenService(RefreshTokenRepository repo) {
         this.repo = repo;
+    }
+
+    // Purge expired and long-since-revoked rows daily so the table doesn't grow unbounded.
+    @Scheduled(cron = "0 30 3 * * *")
+    @Transactional
+    public void purgeDeadTokens() {
+        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+        int deleted = repo.deleteDeadTokens(now, now.minus(REVOKED_RETENTION));
+        if (deleted > 0) {
+            log.info("Refresh-token purge: deleted " + deleted + " dead rows");
+        }
     }
 
     public record IssuedToken(String rawToken, String tokenId) {}
