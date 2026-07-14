@@ -30,6 +30,13 @@ public class Portfolio {
     @Column(name = "principal_balance", nullable = false)
     private BigDecimal principalBalance = BigDecimal.ZERO;
 
+    // Optimistic lock: guards against two concurrent balance updates (e.g. two admins
+    // approving withdrawals for the same investor at once) silently overwriting each other.
+    // A losing update fails with ObjectOptimisticLockingFailureException → 409.
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
 

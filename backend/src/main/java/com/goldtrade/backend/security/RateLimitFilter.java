@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private final RateLimitService rateLimitService;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    // X-Forwarded-For is client-controlled, so trusting it blindly lets an attacker
+    // spoof a new IP per request and bypass the rate limit entirely. Only honour it when
+    // explicitly told we sit behind a trusted proxy (e.g. Railway/Vercel) that overwrites
+    // the header. Off by default: use the real socket address, which fails closed.
+    @Value("${security.trust-forwarded-for:false}")
+    private boolean trustForwardedFor;
 
     public RateLimitFilter(RateLimitService rateLimitService) {
         this.rateLimitService = rateLimitService;
@@ -72,9 +80,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     private String getClientIp(HttpServletRequest request) {
-        String xff = request.getHeader("X-Forwarded-For");
-        if (xff != null && !xff.isBlank()) {
-            return xff.split(",")[0].trim();
+        if (trustForwardedFor) {
+            String xff = request.getHeader("X-Forwarded-For");
+            if (xff != null && !xff.isBlank()) {
+                return xff.split(",")[0].trim();
+            }
         }
         return request.getRemoteAddr();
     }

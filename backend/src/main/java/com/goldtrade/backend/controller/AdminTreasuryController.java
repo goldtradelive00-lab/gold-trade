@@ -124,6 +124,10 @@ public class AdminTreasuryController {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new BadRequestException("Enter a valid amount");
         }
+        if (amount.stripTrailingZeros().scale() > 2) {
+            throw new BadRequestException("Amount can have at most 2 decimal places");
+        }
+        // Upper magnitude is already bounded by the treasury-balance check in transfer().
         return amount;
     }
 }

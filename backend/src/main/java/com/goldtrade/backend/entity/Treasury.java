@@ -22,6 +22,12 @@ public class Treasury {
     @Column(name = "balance", nullable = false)
     private BigDecimal balance;
 
+    // Optimistic lock: two concurrent transfers can't both debit the treasury off the same
+    // stale balance — the losing one fails with ObjectOptimisticLockingFailureException → 409.
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 

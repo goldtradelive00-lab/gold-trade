@@ -229,17 +229,31 @@ public class PortfolioController {
         return "Rs " + amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 
+    // Sanity ceiling on a single deposit/withdrawal request. Generous, but blocks absurd or
+    // fat-fingered values (e.g. overflow attempts) from ever entering the money flow.
+    private static final BigDecimal MAX_AMOUNT = new BigDecimal("1000000000"); // 1 billion PKR
+
     private BigDecimal toAmount(Object raw) {
         BigDecimal amount;
         if (raw instanceof Number n) {
             amount = BigDecimal.valueOf(n.doubleValue());
         } else if (raw instanceof String s) {
-            amount = new BigDecimal(s);
+            try {
+                amount = new BigDecimal(s.trim());
+            } catch (NumberFormatException e) {
+                throw new BadRequestException("Enter a valid amount");
+            }
         } else {
             amount = BigDecimal.ZERO;
         }
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new BadRequestException("Enter a valid amount");
+        }
+        if (amount.stripTrailingZeros().scale() > 2) {
+            throw new BadRequestException("Amount can have at most 2 decimal places");
+        }
+        if (amount.compareTo(MAX_AMOUNT) > 0) {
+            throw new BadRequestException("Amount exceeds the maximum allowed per request");
         }
         return amount;
     }
