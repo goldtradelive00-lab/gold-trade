@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { MarketingNav } from "@/components/marketing/marketing-nav";
+import { LandingGoldChart } from "@/components/marketing/landing-gold-chart";
 import { Button } from "@/components/ui/button";
 import {
   ShieldCheck,
@@ -52,15 +53,8 @@ export default function LandingPage() {
             <p className="text-xs uppercase tracking-widest text-muted-foreground">
               Gold Rate: Pakistan · 24K / Tola
             </p>
-            <p className="font-serif-display mt-2 text-3xl text-primary">Rs 429,208.13</p>
-            <div className="relative mt-6 h-24 overflow-hidden rounded-md">
-              <Image
-                src="/media/istockphoto-2149336956-612x612.jpg"
-                alt=""
-                fill
-                className="object-cover"
-              />
-              <div className="chart-gradient absolute inset-0" />
+            <div className="mt-2">
+              <LandingGoldChart />
             </div>
             <div className="mt-4 flex justify-between text-xs text-muted-foreground">
               <span>Daily Profit <span className="text-primary">1% on principal</span></span>

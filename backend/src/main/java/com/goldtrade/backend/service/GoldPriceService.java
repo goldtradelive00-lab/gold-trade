@@ -70,6 +70,20 @@ public class GoldPriceService {
             // Both keys failed (quota exhausted or network issue) — serve the last known price rather than break the UI
             return new GoldPrice(cached.pricePerTola(), cached.pricePerGram24k(), cached.fetchedAt(), false);
         }
+
+        // Fresh process with an empty in-memory cache AND a failing API (e.g. just after a
+        // restart): fall back to the most recent day we persisted, so the endpoint degrades to
+        // "last known" instead of a 500. Only genuinely fail if we've never stored anything.
+        GoldPriceHistory latest = historyRepo.findTopByOrderByPriceDateDesc().orElse(null);
+        if (latest != null) {
+            GoldPrice fallback = new GoldPrice(
+                    latest.getPricePerTola(),
+                    latest.getPricePerGram24k(),
+                    latest.getPriceDate().atStartOfDay().toInstant(ZoneOffset.UTC),
+                    false);
+            cache.set(fallback);
+            return fallback;
+        }
         throw new IllegalStateException("Gold price is currently unavailable");
     }
 
