@@ -50,6 +50,16 @@ public class NotificationController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
+    // POST /api/notifications/mark-all-read — marks every notification read, called when the
+    // recipient opens the notification bell dropdown
+    @PostMapping("/mark-all-read")
+    @Transactional
+    public ResponseEntity<ApiResponse<?>> markAllRead(Authentication auth) {
+        String userId = (String) auth.getPrincipal();
+        notificationRepo.markAllRead(userId);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
     // DELETE /api/notifications — clears every notification for the current user
     @DeleteMapping
     @Transactional

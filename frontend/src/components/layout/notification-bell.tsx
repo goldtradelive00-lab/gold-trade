@@ -74,8 +74,19 @@ export function NotificationBell() {
     }
   };
 
+  const handleOpenChange = async (open: boolean) => {
+    if (!open || unreadCount === 0) return;
+    try {
+      await api.post("/api/notifications/mark-all-read");
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
+    } catch {
+      // non-critical — the dot will just persist until the next successful check
+    }
+  };
+
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
         <button
           className="relative flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground"
@@ -83,9 +94,7 @@ export function NotificationBell() {
         >
           <Bell className="size-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground">
-              {unreadCount > 9 ? "9+" : unreadCount}
-            </span>
+            <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-primary ring-2 ring-background" />
           )}
         </button>
       </DropdownMenuTrigger>
