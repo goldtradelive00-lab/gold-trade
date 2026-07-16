@@ -202,7 +202,7 @@ export default function WithdrawPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
-                <TableHead>Bank / Wallet</TableHead>
+                <TableHead className="hidden sm:table-cell">Bank / Wallet</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
               </TableRow>
@@ -213,7 +213,7 @@ export default function WithdrawPage() {
                   <TableCell className="text-muted-foreground">
                     {new Date(r.requested_at).toLocaleDateString()}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{r.bank_name}</TableCell>
+                  <TableCell className="hidden text-muted-foreground sm:table-cell">{r.bank_name}</TableCell>
                   <TableCell>
                     <Badge className={STATUS_BADGE[r.status]}>{r.status.toUpperCase()}</Badge>
                   </TableCell>

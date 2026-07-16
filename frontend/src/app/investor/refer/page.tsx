@@ -141,7 +141,7 @@ export default function ReferralPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Investor</TableHead>
-                <TableHead>Date</TableHead>
+                <TableHead className="hidden sm:table-cell">Date</TableHead>
                 <TableHead className="text-right">Their Deposit</TableHead>
                 <TableHead className="text-right">Your Commission</TableHead>
               </TableRow>
@@ -153,7 +153,7 @@ export default function ReferralPage() {
                     <p className="text-foreground">{e.referred_user_name}</p>
                     <p className="text-xs text-muted-foreground">{e.referred_user_email}</p>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell className="hidden text-muted-foreground sm:table-cell">
                     {new Date(e.created_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground">

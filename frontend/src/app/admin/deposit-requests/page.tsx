@@ -103,8 +103,8 @@ export default function AdminDepositRequestsPage() {
         <TableHeader>
           <TableRow>
             <TableHead>Investor</TableHead>
-            <TableHead>Bank / Wallet</TableHead>
-            <TableHead>Requested</TableHead>
+            <TableHead className="hidden md:table-cell">Bank / Wallet</TableHead>
+            <TableHead className="hidden md:table-cell">Requested</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Amount</TableHead>
             <TableHead className="text-right">Actions</TableHead>
@@ -117,8 +117,8 @@ export default function AdminDepositRequestsPage() {
                 <p className="text-foreground">{r.customer}</p>
                 <p className="text-xs text-muted-foreground">{r.email}</p>
               </TableCell>
-              <TableCell className="text-muted-foreground">{r.bank_name}</TableCell>
-              <TableCell className="text-muted-foreground">
+              <TableCell className="hidden text-muted-foreground md:table-cell">{r.bank_name}</TableCell>
+              <TableCell className="hidden text-muted-foreground md:table-cell">
                 {new Date(r.requested_at).toLocaleDateString()}
               </TableCell>
               <TableCell>
@@ -128,7 +128,7 @@ export default function AdminDepositRequestsPage() {
                 {formatCurrency(r.amount)}
               </TableCell>
               <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
+                <div className="flex flex-wrap justify-end gap-2">
                   <Button size="sm" variant="outline" onClick={() => setViewingId(r.id)}>
                     View
                   </Button>

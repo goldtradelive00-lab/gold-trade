@@ -120,7 +120,7 @@ export default function InvestorDashboardPage() {
               <TableRow>
                 <TableHead>Date</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead>Type</TableHead>
+                <TableHead className="hidden sm:table-cell">Type</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
               </TableRow>
             </TableHeader>
@@ -130,8 +130,8 @@ export default function InvestorDashboardPage() {
                   <TableCell className="text-muted-foreground">
                     {new Date(tx.occurred_at).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>{tx.description}</TableCell>
-                  <TableCell>
+                  <TableCell className="whitespace-normal">{tx.description}</TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <Badge className={TX_BADGE[tx.type]}>{tx.type.replace("_", " ").toUpperCase()}</Badge>
                   </TableCell>
                   <TableCell className="font-serif-display text-right text-foreground">

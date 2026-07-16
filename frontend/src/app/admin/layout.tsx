@@ -64,9 +64,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
       <div className="flex h-screen min-h-0 flex-1 overflow-hidden bg-background">
         <AdminSidebar className="hidden md:flex" />
-        <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex min-w-0 min-h-0 flex-1 flex-col">
           <DashboardTopbar title={titleForPath(pathname)} user={null} />
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+          <main className="min-w-0 flex-1 overflow-y-auto p-4 sm:p-6">
             <div className="space-y-6">
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {Array.from({ length: 4 }).map((_, i) => (
@@ -102,13 +102,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       )}
 
-      <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex min-w-0 min-h-0 flex-1 flex-col">
         <DashboardTopbar
           title={titleForPath(pathname)}
           user={user}
           onMenuClick={() => setMobileNavOpen(true)}
         />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+        <main className="min-w-0 flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );

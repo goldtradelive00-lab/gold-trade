@@ -151,8 +151,8 @@ export default function AdminFinancePage() {
               <TableRow>
                 <TableHead>Investor</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Date</TableHead>
+                <TableHead className="hidden md:table-cell">Type</TableHead>
+                <TableHead className="hidden md:table-cell">Date</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
               </TableRow>
             </TableHeader>
@@ -163,11 +163,11 @@ export default function AdminFinancePage() {
                     <p className="text-foreground">{row.investor_name}</p>
                     <p className="text-xs text-muted-foreground">{row.investor_email}</p>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{row.description}</TableCell>
-                  <TableCell>
+                  <TableCell className="whitespace-normal text-muted-foreground">{row.description}</TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <Badge className={TYPE_BADGE[row.type]}>{row.type.replace("_", " ").toUpperCase()}</Badge>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell className="hidden text-muted-foreground md:table-cell">
                     {new Date(row.occurred_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="font-serif-display text-right text-foreground">

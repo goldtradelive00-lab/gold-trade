@@ -59,9 +59,9 @@ export default function InvestorLayout({ children }: { children: React.ReactNode
     return (
       <div className="flex h-screen min-h-0 flex-1 overflow-hidden bg-background">
         <InvestorSidebar className="hidden md:flex" />
-        <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex min-w-0 min-h-0 flex-1 flex-col">
           <DashboardTopbar title={PAGE_TITLES[pathname] ?? "Overview"} user={null} />
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+          <main className="min-w-0 flex-1 overflow-y-auto p-4 sm:p-6">
             <div className="space-y-6">
               <div className="hairline-border rounded-xl bg-card p-6">
                 <Skeleton className="h-3 w-40" />
@@ -112,13 +112,13 @@ export default function InvestorLayout({ children }: { children: React.ReactNode
         </div>
       )}
 
-      <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex min-w-0 min-h-0 flex-1 flex-col">
         <DashboardTopbar
           title={PAGE_TITLES[pathname] ?? "Overview"}
           user={user}
           onMenuClick={() => setMobileNavOpen(true)}
         />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+        <main className="min-w-0 flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );

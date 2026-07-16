@@ -93,7 +93,7 @@ export default function AdminInvestorDetailPage() {
               <TableRow>
                 <TableHead>Date</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead>Type</TableHead>
+                <TableHead className="hidden sm:table-cell">Type</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
               </TableRow>
             </TableHeader>
@@ -103,8 +103,8 @@ export default function AdminInvestorDetailPage() {
                   <TableCell className="text-muted-foreground">
                     {new Date(tx.occurred_at).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>{tx.description}</TableCell>
-                  <TableCell>{tx.type}</TableCell>
+                  <TableCell className="whitespace-normal">{tx.description}</TableCell>
+                  <TableCell className="hidden sm:table-cell">{tx.type}</TableCell>
                   <TableCell className="text-right">{formatCurrency(tx.amount)}</TableCell>
                 </TableRow>
               ))}

@@ -129,9 +129,9 @@ export default function AdminInvestorsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
+              <TableHead className="hidden md:table-cell">Email</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Portfolio Value</TableHead>
+              <TableHead className="hidden text-right sm:table-cell">Portfolio Value</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -142,8 +142,9 @@ export default function AdminInvestorsPage() {
                   <Link href={`/admin/investors/${inv.id}`} className="text-foreground hover:text-primary">
                     {inv.full_name || "N/A"}
                   </Link>
+                  <p className="text-xs text-muted-foreground md:hidden">{inv.email}</p>
                 </TableCell>
-                <TableCell className="text-muted-foreground">{inv.email}</TableCell>
+                <TableCell className="hidden text-muted-foreground md:table-cell">{inv.email}</TableCell>
                 <TableCell>
                   {!inv.email_verified ? (
                     <Badge variant="secondary">Unverified</Badge>
@@ -153,11 +154,11 @@ export default function AdminInvestorsPage() {
                     <Badge className="bg-secondary text-secondary-foreground">Pending</Badge>
                   )}
                 </TableCell>
-                <TableCell className="font-serif-display text-right text-foreground">
+                <TableCell className="hidden font-serif-display text-right text-foreground sm:table-cell">
                   {formatCurrency(inv.portfolio_total_value)}
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
+                  <div className="flex flex-wrap justify-end gap-2">
                     {!inv.is_approved && inv.email_verified && (
                       <>
                         <Button
