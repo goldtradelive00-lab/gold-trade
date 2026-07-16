@@ -6,6 +6,7 @@ import com.goldtrade.backend.entity.DepositRequest;
 import com.goldtrade.backend.entity.Portfolio;
 import com.goldtrade.backend.entity.ReferralEarning;
 import com.goldtrade.backend.entity.Transaction;
+import com.goldtrade.backend.entity.Treasury;
 import com.goldtrade.backend.entity.User;
 import com.goldtrade.backend.exception.BadRequestException;
 import com.goldtrade.backend.exception.ResourceNotFoundException;
@@ -14,6 +15,7 @@ import com.goldtrade.backend.repository.DepositRequestRepository;
 import com.goldtrade.backend.repository.PortfolioRepository;
 import com.goldtrade.backend.repository.ReferralEarningRepository;
 import com.goldtrade.backend.repository.TransactionRepository;
+import com.goldtrade.backend.repository.TreasuryRepository;
 import com.goldtrade.backend.repository.UserRepository;
 import com.goldtrade.backend.service.NotificationService;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +35,7 @@ import java.util.Map;
 public class AdminDepositController {
 
     private static final BigDecimal REFERRAL_COMMISSION_RATE = new BigDecimal("0.05");
+    private static final String TREASURY_ID = "main";
 
     private final DepositRequestRepository depositRequestRepo;
     private final PortfolioRepository portfolioRepo;
@@ -40,6 +43,7 @@ public class AdminDepositController {
     private final UserRepository userRepo;
     private final AdminRepository adminRepo;
     private final ReferralEarningRepository referralEarningRepo;
+    private final TreasuryRepository treasuryRepo;
     private final NotificationService notificationService;
 
     public AdminDepositController(DepositRequestRepository depositRequestRepo,
@@ -48,6 +52,7 @@ public class AdminDepositController {
                                    UserRepository userRepo,
                                    AdminRepository adminRepo,
                                    ReferralEarningRepository referralEarningRepo,
+                                   TreasuryRepository treasuryRepo,
                                    NotificationService notificationService) {
         this.depositRequestRepo = depositRequestRepo;
         this.portfolioRepo = portfolioRepo;
@@ -55,6 +60,7 @@ public class AdminDepositController {
         this.userRepo = userRepo;
         this.adminRepo = adminRepo;
         this.referralEarningRepo = referralEarningRepo;
+        this.treasuryRepo = treasuryRepo;
         this.notificationService = notificationService;
     }
 
@@ -91,6 +97,13 @@ public class AdminDepositController {
         tx.setDescription("Deposit via " + request.getBankName());
         tx.setAmount(request.getAmount());
         transactionRepo.save(tx);
+
+        // Approved deposits are real cash entering the business, so the platform treasury
+        // grows by the same amount — see AdminWithdrawalController for the mirrored decrease.
+        treasuryRepo.findById(TREASURY_ID).ifPresent(treasury -> {
+            treasury.setBalance(treasury.getBalance().add(request.getAmount()));
+            treasuryRepo.save(treasury);
+        });
 
         User depositor = userRepo.findById(request.getUserId()).orElse(null);
         if (depositor != null && depositor.getReferredBy() != null) {

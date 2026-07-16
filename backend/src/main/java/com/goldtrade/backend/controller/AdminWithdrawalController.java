@@ -4,6 +4,7 @@ import com.goldtrade.backend.dto.response.ApiResponse;
 import com.goldtrade.backend.entity.Admin;
 import com.goldtrade.backend.entity.Portfolio;
 import com.goldtrade.backend.entity.Transaction;
+import com.goldtrade.backend.entity.Treasury;
 import com.goldtrade.backend.entity.User;
 import com.goldtrade.backend.entity.WithdrawRequest;
 import com.goldtrade.backend.exception.BadRequestException;
@@ -11,6 +12,7 @@ import com.goldtrade.backend.exception.ResourceNotFoundException;
 import com.goldtrade.backend.repository.AdminRepository;
 import com.goldtrade.backend.repository.PortfolioRepository;
 import com.goldtrade.backend.repository.TransactionRepository;
+import com.goldtrade.backend.repository.TreasuryRepository;
 import com.goldtrade.backend.repository.UserRepository;
 import com.goldtrade.backend.repository.WithdrawRequestRepository;
 import com.goldtrade.backend.service.NotificationService;
@@ -30,11 +32,14 @@ import java.util.Map;
 @RequestMapping("/api/admin/withdrawals")
 public class AdminWithdrawalController {
 
+    private static final String TREASURY_ID = "main";
+
     private final WithdrawRequestRepository withdrawRequestRepo;
     private final PortfolioRepository portfolioRepo;
     private final TransactionRepository transactionRepo;
     private final UserRepository userRepo;
     private final AdminRepository adminRepo;
+    private final TreasuryRepository treasuryRepo;
     private final NotificationService notificationService;
 
     public AdminWithdrawalController(WithdrawRequestRepository withdrawRequestRepo,
@@ -42,12 +47,14 @@ public class AdminWithdrawalController {
                                       TransactionRepository transactionRepo,
                                       UserRepository userRepo,
                                       AdminRepository adminRepo,
+                                      TreasuryRepository treasuryRepo,
                                       NotificationService notificationService) {
         this.withdrawRequestRepo = withdrawRequestRepo;
         this.portfolioRepo = portfolioRepo;
         this.transactionRepo = transactionRepo;
         this.userRepo = userRepo;
         this.adminRepo = adminRepo;
+        this.treasuryRepo = treasuryRepo;
         this.notificationService = notificationService;
     }
 
@@ -75,6 +82,11 @@ public class AdminWithdrawalController {
             throw new BadRequestException("Customer's cash balance is no longer sufficient");
         }
 
+        Treasury treasury = treasuryRepo.findById(TREASURY_ID).orElse(null);
+        if (treasury != null && request.getAmount().compareTo(treasury.getBalance()) > 0) {
+            throw new BadRequestException("Treasury balance is insufficient to fund this withdrawal");
+        }
+
         portfolio.setCashBalance(portfolio.getCashBalance().subtract(request.getAmount()));
         // Withdrawals draw down principal first (referral bonuses and prior profit credits
         // are cash but were never counted as principal), so future daily 1% profit is based
@@ -89,6 +101,13 @@ public class AdminWithdrawalController {
         tx.setDescription("Withdrawal via " + (request.getBankName() != null ? request.getBankName() : request.getMethod()));
         tx.setAmount(request.getAmount());
         transactionRepo.save(tx);
+
+        // Approved withdrawals send real cash out of the business, so the platform treasury
+        // shrinks by the same amount — see AdminDepositController for the mirrored increase.
+        if (treasury != null) {
+            treasury.setBalance(treasury.getBalance().subtract(request.getAmount()));
+            treasuryRepo.save(treasury);
+        }
 
         request.setStatus("approved");
         request.setReviewedBy((String) auth.getPrincipal());
