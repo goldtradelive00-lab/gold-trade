@@ -40,7 +40,11 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <AuthCard title="Reset Password" subtitle="We'll email you a link to reset your password.">
+    <AuthCard
+      title="Reset Password"
+      subtitle="We'll email you a link to reset your password."
+      backgroundImage="/media/pexels-steve-26628060.jpg"
+    >
       {sent ? (
         <p className="text-sm text-muted-foreground">
           If that email is registered, a reset link has been sent.

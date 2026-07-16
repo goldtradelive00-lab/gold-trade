@@ -62,7 +62,7 @@ function ResetPasswordForm() {
   };
 
   return (
-    <AuthCard title="Set a New Password">
+    <AuthCard title="Set a New Password" backgroundImage="/media/pexels-steve-26628060.jpg">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div className="space-y-2">
           <Label htmlFor="new_password">
