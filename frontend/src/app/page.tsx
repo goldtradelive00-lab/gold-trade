@@ -44,7 +44,7 @@ export default function LandingPage() {
                 <Link href="/join">Open an Account</Link>
               </Button>
               <Button size="lg" variant="outline" className="border-primary text-primary" asChild>
-                <Link href="/#platform">See How It Works</Link>
+                <Link href="/how-it-works">See How It Works</Link>
               </Button>
             </div>
           </div>

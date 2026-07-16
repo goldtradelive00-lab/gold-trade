@@ -10,7 +10,7 @@ export function MarketingNav() {
           GOLDTRADE
         </Link>
         <nav className="hidden items-center gap-8 text-sm uppercase tracking-wide text-muted-foreground md:flex">
-          <Link href="/#platform" className="hover:text-foreground">Platform</Link>
+          <Link href="/how-it-works" className="hover:text-foreground">Platform</Link>
           <Link href="/#security" className="hover:text-foreground">Security</Link>
         </nav>
         <div className="flex items-center gap-3">

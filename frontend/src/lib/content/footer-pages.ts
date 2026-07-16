@@ -11,6 +11,55 @@ export interface FooterPage {
   sections: FooterPageSection[];
 }
 
+export const howItWorksPage: FooterPage = {
+  slug: "how-it-works",
+  title: "How GoldTrade Works",
+  kicker: "Platform",
+  intro: [
+    "From opening an account to watching your first daily profit land, here is exactly what happens at each step, including how to read your dashboard once you're in.",
+  ],
+  sections: [
+    {
+      heading: "1. Open an Account",
+      paragraphs: [
+        "Sign up with your name, email, and phone number. You'll receive a verification email, click the link to confirm your address, and your account is ready to use.",
+      ],
+    },
+    {
+      heading: "2. Make a Deposit",
+      paragraphs: [
+        "From your dashboard, submit a deposit request and send the funds using any major Pakistani bank, JazzCash, Easypaisa, NayaPay, or SadaPay. Confirm your payment receipt over WhatsApp so our team can match it to your request.",
+        "Our team manually verifies every receipt before crediting an account, which typically takes up to 24 hours. Once approved, the amount is added to both your cash balance and your principal balance.",
+      ],
+    },
+    {
+      heading: "3. Read Your Dashboard",
+      paragraphs: [
+        "Your dashboard shows two numbers: cash balance, the amount you can withdraw right now, and principal balance, the deposited amount that earns your daily profit. A live Pakistan gold rate chart sits above them, and a running transaction list below shows every deposit, withdrawal, referral bonus, and profit credit as it happens.",
+        "Nothing on the dashboard is delayed or hidden: what you see is what you can withdraw, subject to admin review on pending requests.",
+      ],
+    },
+    {
+      heading: "4. Earn Daily Profit",
+      paragraphs: [
+        "Once your deposit is approved, your principal balance starts earning a flat 1% profit every day, credited straight to your cash balance. The 1% is always calculated on your principal, not your accumulated profit, so it stays simple and predictable rather than compounding.",
+      ],
+    },
+    {
+      heading: "5. Refer & Earn 5%",
+      paragraphs: [
+        "Share your personal referral link or code from the Referral page. When someone signs up through it and their deposit is approved, you automatically earn a 5% bonus on that deposit, credited to your cash balance, with no extra step required.",
+      ],
+    },
+    {
+      heading: "6. Withdraw Anytime",
+      paragraphs: [
+        "Submit a withdrawal request for any amount up to your cash balance, along with the bank or wallet account you want it sent to. Once an admin reviews and approves it, funds are on their way; if a request is rejected, the amount simply stays in your account with no change.",
+      ],
+    },
+  ],
+};
+
 export const productPages: Record<string, FooterPage> = {
   dashboard: {
     slug: "dashboard",
