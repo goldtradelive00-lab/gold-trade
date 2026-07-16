@@ -22,7 +22,7 @@ export default function InvestorLayout({ children }: { children: React.ReactNode
   const router = useRouter();
   const pathname = usePathname();
   const { user, setUser } = useAuthStore();
-  const [loading, setLoading] = useState(true);
+  const [verified, setVerified] = useState(user?.role === "investor");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export default function InvestorLayout({ children }: { children: React.ReactNode
           return;
         }
         setUser(me);
-        setLoading(false);
+        setVerified(true);
       } catch {
         clearSessionTokens();
         router.replace("/login");
@@ -55,10 +55,42 @@ export default function InvestorLayout({ children }: { children: React.ReactNode
     };
   }, [router, setUser]);
 
-  if (loading) {
+  if (!verified) {
     return (
-      <div className="flex flex-1 items-center justify-center bg-background">
-        <Skeleton className="h-8 w-40" />
+      <div className="flex h-screen min-h-0 flex-1 overflow-hidden bg-background">
+        <InvestorSidebar className="hidden md:flex" />
+        <div className="flex min-h-0 flex-1 flex-col">
+          <DashboardTopbar title={PAGE_TITLES[pathname] ?? "Overview"} user={null} />
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+            <div className="space-y-6">
+              <div className="hairline-border rounded-xl bg-card p-6">
+                <Skeleton className="h-3 w-40" />
+                <Skeleton className="mt-3 h-9 w-56" />
+                <div className="mt-6 grid grid-cols-2 gap-6">
+                  <div>
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="mt-2 h-5 w-28" />
+                  </div>
+                  <div>
+                    <Skeleton className="h-3 w-32" />
+                    <Skeleton className="mt-2 h-5 w-28" />
+                  </div>
+                </div>
+              </div>
+              <div className="grid gap-6 lg:grid-cols-3">
+                <Skeleton className="h-72 lg:col-span-2" />
+                <div className="hairline-border rounded-xl bg-card p-6">
+                  <Skeleton className="h-3 w-28" />
+                  <div className="mt-4 flex flex-col gap-3">
+                    <Skeleton className="h-9 w-full" />
+                    <Skeleton className="h-9 w-full" />
+                  </div>
+                </div>
+              </div>
+              <Skeleton className="h-48" />
+            </div>
+          </main>
+        </div>
       </div>
     );
   }

@@ -27,7 +27,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const pathname = usePathname();
   const { user, setUser } = useAuthStore();
-  const [loading, setLoading] = useState(true);
+  const [verified, setVerified] = useState(user?.role === "admin");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           return;
         }
         setUser(me);
-        setLoading(false);
+        setVerified(true);
       } catch {
         clearSessionTokens();
         router.replace("/login");
@@ -60,10 +60,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     };
   }, [router, setUser]);
 
-  if (loading) {
+  if (!verified) {
     return (
-      <div className="flex flex-1 items-center justify-center bg-background">
-        <Skeleton className="h-8 w-40" />
+      <div className="flex h-screen min-h-0 flex-1 overflow-hidden bg-background">
+        <AdminSidebar className="hidden md:flex" />
+        <div className="flex min-h-0 flex-1 flex-col">
+          <DashboardTopbar title={titleForPath(pathname)} user={null} />
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+            <div className="space-y-6">
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="hairline-border rounded-xl bg-card p-6">
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="mt-3 h-7 w-32" />
+                  </div>
+                ))}
+              </div>
+              <Skeleton className="h-72" />
+              <Skeleton className="h-64" />
+            </div>
+          </main>
+        </div>
       </div>
     );
   }
