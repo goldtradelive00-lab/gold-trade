@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { RefreshCw } from "lucide-react";
 import { api } from "@/lib/api";
 import { formatCurrency, getErrorMessage } from "@/lib/utils";
 import type { PortfolioOverview } from "@/types/domain";
@@ -61,16 +62,30 @@ export default function WithdrawPage() {
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
 
-  const { data: portfolio, isLoading: loadingPortfolio } = useQuery({
+  const {
+    data: portfolio,
+    isLoading: loadingPortfolio,
+    refetch: refetchPortfolio,
+  } = useQuery({
     queryKey: ["portfolio"],
     queryFn: () => api.get<PortfolioOverview>("/api/portfolio"),
     refetchInterval: 10_000,
   });
-  const { data: history, isLoading: loadingHistory } = useQuery({
+  const {
+    data: history,
+    isLoading: loadingHistory,
+    isFetching: fetchingHistory,
+    refetch: refetchHistory,
+  } = useQuery({
     queryKey: ["portfolio", "withdrawals"],
     queryFn: () => api.get<WithdrawRequestRow[]>("/api/portfolio/withdrawals"),
     refetchInterval: 10_000,
   });
+
+  const refresh = () => {
+    refetchPortfolio();
+    refetchHistory();
+  };
 
   const available = portfolio?.cash_balance ?? 0;
   const pending = history?.filter((r) => r.status === "pending") ?? [];
@@ -170,7 +185,12 @@ export default function WithdrawPage() {
           <h2 className="text-sm uppercase tracking-widest text-muted-foreground">
             Withdrawal History
           </h2>
-          <Button onClick={() => setOpen(true)}>Request a Withdrawal</Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" onClick={refresh} aria-label="Refresh">
+              <RefreshCw className={fetchingHistory ? "size-4 animate-spin" : "size-4"} />
+            </Button>
+            <Button onClick={() => setOpen(true)}>Request a Withdrawal</Button>
+          </div>
         </div>
 
         {loadingHistory || !history ? (

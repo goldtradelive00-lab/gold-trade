@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { RefreshCw } from "lucide-react";
 import { api } from "@/lib/api";
 import { formatCurrency, getErrorMessage } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -58,7 +59,12 @@ export default function AdminDepositRequestsPage() {
   const queryClient = useQueryClient();
   const [viewingId, setViewingId] = useState<string | null>(null);
   const [reviewingKey, setReviewingKey] = useState<string | null>(null);
-  const { data: requests, isLoading } = useQuery({
+  const {
+    data: requests,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useQuery({
     queryKey: ["admin", "deposit-requests"],
     queryFn: () => api.get<DepositRequestRow[]>("/api/admin/deposit-requests"),
     refetchInterval: 10_000,
@@ -158,9 +164,14 @@ export default function AdminDepositRequestsPage() {
   return (
     <div className="space-y-6">
       <div className="hairline-border rounded-xl bg-card p-6">
-        <h2 className="text-sm uppercase tracking-widest text-muted-foreground">
-          Deposit Requests
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm uppercase tracking-widest text-muted-foreground">
+            Deposit Requests
+          </h2>
+          <Button variant="outline" size="icon" onClick={() => refetch()} aria-label="Refresh">
+            <RefreshCw className={isFetching ? "size-4 animate-spin" : "size-4"} />
+          </Button>
+        </div>
 
         <Tabs defaultValue="pending" className="mt-4">
           <TabsList>

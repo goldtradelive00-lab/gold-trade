@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
 import { toast } from "sonner";
@@ -43,6 +43,23 @@ export function NotificationBell() {
 
   const unreadCount = unread?.count ?? 0;
   const list = notifications ?? [];
+
+  // Surface newly arrived notifications with a toast, since visiting the page a
+  // notification refers to (e.g. /admin/deposit-requests) immediately marks it read
+  // and would otherwise leave the bell badge as the only (easy to miss) signal.
+  const seenIdsRef = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    if (!notifications) return;
+    const currentIds = new Set(notifications.map((n) => n.id));
+    if (seenIdsRef.current) {
+      for (const n of notifications) {
+        if (!seenIdsRef.current.has(n.id)) {
+          toast.message(n.title, { description: n.message });
+        }
+      }
+    }
+    seenIdsRef.current = currentIds;
+  }, [notifications]);
 
   const clearAll = async () => {
     setClearing(true);

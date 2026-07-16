@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Copy } from "lucide-react";
+import { Copy, RefreshCw } from "lucide-react";
 import { api } from "@/lib/api";
 import { formatCurrency, getErrorMessage } from "@/lib/utils";
 import type { PortfolioOverview } from "@/types/domain";
@@ -72,16 +72,30 @@ export default function DepositPage() {
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
 
-  const { data: portfolio, isLoading: loadingPortfolio } = useQuery({
+  const {
+    data: portfolio,
+    isLoading: loadingPortfolio,
+    refetch: refetchPortfolio,
+  } = useQuery({
     queryKey: ["portfolio"],
     queryFn: () => api.get<PortfolioOverview>("/api/portfolio"),
     refetchInterval: 10_000,
   });
-  const { data: history, isLoading: loadingHistory } = useQuery({
+  const {
+    data: history,
+    isLoading: loadingHistory,
+    isFetching: fetchingHistory,
+    refetch: refetchHistory,
+  } = useQuery({
     queryKey: ["portfolio", "deposit-requests"],
     queryFn: () => api.get<DepositRequestRow[]>("/api/portfolio/deposit-requests"),
     refetchInterval: 10_000,
   });
+
+  const refresh = () => {
+    refetchPortfolio();
+    refetchHistory();
+  };
   const { data: whatsapp } = useQuery({
     queryKey: ["settings", "deposit-whatsapp"],
     queryFn: () => api.get<{ whatsapp_number: string }>("/api/settings/deposit-whatsapp"),
@@ -184,7 +198,12 @@ export default function DepositPage() {
           <h2 className="text-sm uppercase tracking-widest text-muted-foreground">
             Deposit History
           </h2>
-          <Button onClick={() => setOpen(true)}>Deposit Funds</Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" onClick={refresh} aria-label="Refresh">
+              <RefreshCw className={fetchingHistory ? "size-4 animate-spin" : "size-4"} />
+            </Button>
+            <Button onClick={() => setOpen(true)}>Deposit Funds</Button>
+          </div>
         </div>
 
         {loadingHistory || !history ? (
