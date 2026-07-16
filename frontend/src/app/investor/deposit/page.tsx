@@ -75,10 +75,12 @@ export default function DepositPage() {
   const { data: portfolio, isLoading: loadingPortfolio } = useQuery({
     queryKey: ["portfolio"],
     queryFn: () => api.get<PortfolioOverview>("/api/portfolio"),
+    refetchInterval: 10_000,
   });
   const { data: history, isLoading: loadingHistory } = useQuery({
     queryKey: ["portfolio", "deposit-requests"],
     queryFn: () => api.get<DepositRequestRow[]>("/api/portfolio/deposit-requests"),
+    refetchInterval: 10_000,
   });
   const { data: whatsapp } = useQuery({
     queryKey: ["settings", "deposit-whatsapp"],

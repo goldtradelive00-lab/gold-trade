@@ -64,10 +64,12 @@ export default function WithdrawPage() {
   const { data: portfolio, isLoading: loadingPortfolio } = useQuery({
     queryKey: ["portfolio"],
     queryFn: () => api.get<PortfolioOverview>("/api/portfolio"),
+    refetchInterval: 10_000,
   });
   const { data: history, isLoading: loadingHistory } = useQuery({
     queryKey: ["portfolio", "withdrawals"],
     queryFn: () => api.get<WithdrawRequestRow[]>("/api/portfolio/withdrawals"),
+    refetchInterval: 10_000,
   });
 
   const available = portfolio?.cash_balance ?? 0;

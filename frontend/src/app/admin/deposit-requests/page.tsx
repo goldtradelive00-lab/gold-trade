@@ -56,11 +56,12 @@ const STATUS_BADGE: Record<RequestStatus, string> = {
 export default function AdminDepositRequestsPage() {
   useMarkSectionRead("admin_deposit");
   const queryClient = useQueryClient();
-  const [viewing, setViewing] = useState<DepositRequestRow | null>(null);
+  const [viewingId, setViewingId] = useState<string | null>(null);
   const [reviewingKey, setReviewingKey] = useState<string | null>(null);
   const { data: requests, isLoading } = useQuery({
     queryKey: ["admin", "deposit-requests"],
     queryFn: () => api.get<DepositRequestRow[]>("/api/admin/deposit-requests"),
+    refetchInterval: 10_000,
   });
 
   const review = async (id: string, action: "approve" | "reject") => {
@@ -70,7 +71,7 @@ export default function AdminDepositRequestsPage() {
       await api.post(`/api/admin/deposit-requests/${id}/${action}`);
       toast.success(action === "approve" ? "Deposit approved" : "Deposit rejected");
       queryClient.invalidateQueries({ queryKey: ["admin", "deposit-requests"] });
-      setViewing(null);
+      setViewingId(null);
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -81,6 +82,8 @@ export default function AdminDepositRequestsPage() {
   if (isLoading || !requests) {
     return <TableSkeleton rows={5} cols={6} />;
   }
+
+  const viewing = requests.find((r) => r.id === viewingId) ?? null;
 
   const pending = requests.filter((r) => r.status === "pending");
   const approved = requests.filter((r) => r.status === "approved");
@@ -120,7 +123,7 @@ export default function AdminDepositRequestsPage() {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
-                  <Button size="sm" variant="outline" onClick={() => setViewing(r)}>
+                  <Button size="sm" variant="outline" onClick={() => setViewingId(r.id)}>
                     View
                   </Button>
                   {r.status === "pending" && (
@@ -177,7 +180,7 @@ export default function AdminDepositRequestsPage() {
         </Tabs>
       </div>
 
-      <Dialog open={!!viewing} onOpenChange={(v) => !v && setViewing(null)}>
+      <Dialog open={!!viewing} onOpenChange={(v) => !v && setViewingId(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Deposit Request</DialogTitle>
