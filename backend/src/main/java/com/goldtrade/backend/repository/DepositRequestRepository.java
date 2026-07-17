@@ -10,4 +10,5 @@ import java.util.List;
 public interface DepositRequestRepository extends JpaRepository<DepositRequest, String> {
     List<DepositRequest> findByUserIdOrderByRequestedAtDesc(String userId);
     List<DepositRequest> findAllByOrderByRequestedAtDesc();
+    long countByStatus(String status);
 }

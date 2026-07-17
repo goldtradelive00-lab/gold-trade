@@ -4,9 +4,11 @@ import com.goldtrade.backend.dto.response.ApiResponse;
 import com.goldtrade.backend.entity.Portfolio;
 import com.goldtrade.backend.entity.Treasury;
 import com.goldtrade.backend.entity.User;
+import com.goldtrade.backend.repository.DepositRequestRepository;
 import com.goldtrade.backend.repository.PortfolioRepository;
 import com.goldtrade.backend.repository.TreasuryRepository;
 import com.goldtrade.backend.repository.UserRepository;
+import com.goldtrade.backend.repository.WithdrawRequestRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,11 +27,19 @@ public class AdminOverviewController {
     private final UserRepository userRepo;
     private final PortfolioRepository portfolioRepo;
     private final TreasuryRepository treasuryRepo;
+    private final DepositRequestRepository depositRequestRepo;
+    private final WithdrawRequestRepository withdrawRequestRepo;
 
-    public AdminOverviewController(UserRepository userRepo, PortfolioRepository portfolioRepo, TreasuryRepository treasuryRepo) {
+    public AdminOverviewController(UserRepository userRepo,
+                                    PortfolioRepository portfolioRepo,
+                                    TreasuryRepository treasuryRepo,
+                                    DepositRequestRepository depositRequestRepo,
+                                    WithdrawRequestRepository withdrawRequestRepo) {
         this.userRepo = userRepo;
         this.portfolioRepo = portfolioRepo;
         this.treasuryRepo = treasuryRepo;
+        this.depositRequestRepo = depositRequestRepo;
+        this.withdrawRequestRepo = withdrawRequestRepo;
     }
 
     // GET /api/admin/overview — platform-wide stats
@@ -49,10 +59,13 @@ public class AdminOverviewController {
                 .map(Treasury::getBalance)
                 .orElse(BigDecimal.ZERO);
 
+        long pendingRequests = depositRequestRepo.countByStatus("pending") + withdrawRequestRepo.countByStatus("pending");
+
         return ResponseEntity.ok(ApiResponse.success(Map.of(
                 "total_investors", customers.size(),
                 "approved_investors", approvedCount,
                 "pending_approvals", pendingCount,
+                "pending_requests", pendingRequests,
                 "total_aum", totalAum,
                 "treasury_balance", treasuryBalance
         )));

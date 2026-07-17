@@ -10,4 +10,5 @@ import java.util.List;
 public interface WithdrawRequestRepository extends JpaRepository<WithdrawRequest, String> {
     List<WithdrawRequest> findByUserIdOrderByRequestedAtDesc(String userId);
     List<WithdrawRequest> findAllByOrderByRequestedAtDesc();
+    long countByStatus(String status);
 }

@@ -7,8 +7,7 @@ import { StatCardSkeleton } from "@/components/skeletons";
 
 interface OverviewStats {
   total_investors: number;
-  approved_investors: number;
-  pending_approvals: number;
+  pending_requests: number;
   total_aum: number;
   treasury_balance: number;
 }
@@ -21,9 +20,8 @@ export default function AdminOverviewPage() {
 
   if (isLoading || !data) {
     return (
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatCardSkeleton big />
-        <StatCardSkeleton />
         <StatCardSkeleton />
         <StatCardSkeleton />
         <StatCardSkeleton />
@@ -32,15 +30,14 @@ export default function AdminOverviewPage() {
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       <StatCard label="Total AUM" value={formatCurrency(data.total_aum ?? 0)} />
       <StatCard label="Treasury Balance" value={formatCurrency(data.treasury_balance ?? 0)} />
       <StatCard label="Total Investors" value={data.total_investors.toString()} />
-      <StatCard label="Approved Investors" value={data.approved_investors.toString()} />
       <StatCard
-        label="Pending Approvals"
-        value={data.pending_approvals.toString()}
-        highlight={data.pending_approvals > 0}
+        label="Requests Pending"
+        value={data.pending_requests.toString()}
+        highlight={data.pending_requests > 0}
       />
     </div>
   );
