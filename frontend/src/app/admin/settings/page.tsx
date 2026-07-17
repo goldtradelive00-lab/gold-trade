@@ -41,8 +41,8 @@ export default function AdminSettingsPage() {
     queryFn: () => api.get<PaymentMethods>("/api/settings/payment-methods"),
   });
   const { data: goldPriceSetting } = useQuery({
-    queryKey: ["settings", "gold-price"],
-    queryFn: () => api.get<{ price: number }>("/api/settings/gold-price"),
+    queryKey: ["market", "gold"],
+    queryFn: () => api.get<{ price: number; date: string }>("/api/market/gold"),
   });
 
   useEffect(() => {
@@ -107,9 +107,10 @@ export default function AdminSettingsPage() {
     }
     setSavingGoldPrice(true);
     try {
-      await api.put("/api/admin/settings/gold-price", { price: value });
+      await api.put("/api/admin/market/gold", { price: value });
       toast.success("Gold price updated");
-      queryClient.invalidateQueries({ queryKey: ["settings", "gold-price"] });
+      queryClient.invalidateQueries({ queryKey: ["market", "gold"] });
+      queryClient.invalidateQueries({ queryKey: ["market", "gold", "history"] });
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -214,8 +215,9 @@ export default function AdminSettingsPage() {
           Today&apos;s Gold Price
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Sets the current gold rate (USD per troy ounce, 24K) shown on the investor dashboard.
-          The dashboard chart's trend is generated around this value.
+          Sets today&apos;s gold rate (USD per troy ounce, 24K), shown on both the public
+          landing page and the investor dashboard chart. Once set, it&apos;s stored — the
+          same price shows everywhere until you update it again.
         </p>
         <div className="mt-4 max-w-xs space-y-2">
           <Label htmlFor="gold_price">Gold Price (USD / oz)</Label>

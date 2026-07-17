@@ -168,6 +168,7 @@ public class AdminWithdrawalController {
         map.put("email", customer != null ? customer.getEmail() : "");
         map.put("phone_number", customer != null ? customer.getPhoneNumber() : "");
         map.put("amount", request.getAmount());
+        map.put("method", request.getMethod());
         map.put("bank_name", request.getBankName() != null ? request.getBankName() : request.getMethod());
         map.put("account_title", request.getAccountTitle());
         map.put("account_number", request.getAccountNumber());

@@ -7,8 +7,6 @@ import com.goldtrade.backend.repository.AppSettingRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Map;
 
 @RestController
@@ -23,9 +21,6 @@ public class SettingsController {
     private static final String BINANCE_ADDRESS_DEFAULT = "TRGqwZ85XoV1xxqRk1fu6KbhyGX4rG5DnV";
     private static final String BINANCE_NETWORK_KEY = "binance_network";
     private static final String BINANCE_NETWORK_DEFAULT = "TRX (TRC20)";
-
-    private static final String GOLD_PRICE_KEY = "gold_price_today";
-    private static final String GOLD_PRICE_DEFAULT = "2650.00";
 
     private final AppSettingRepository settingRepo;
 
@@ -94,39 +89,5 @@ public class SettingsController {
                 "binance_address", address,
                 "binance_network", network
         ), "Payment methods updated"));
-    }
-
-    // GET /api/settings/gold-price — any authenticated user; anchors the dashboard gold chart
-    @GetMapping("/api/settings/gold-price")
-    public ResponseEntity<ApiResponse<?>> getGoldPrice() {
-        BigDecimal price = new BigDecimal(getSetting(GOLD_PRICE_KEY, GOLD_PRICE_DEFAULT));
-        return ResponseEntity.ok(ApiResponse.success(Map.of("price", price)));
-    }
-
-    // PUT /api/admin/settings/gold-price — admin only
-    @PutMapping("/api/admin/settings/gold-price")
-    public ResponseEntity<ApiResponse<?>> updateGoldPrice(@RequestBody Map<String, Object> body) {
-        BigDecimal price = toPositiveAmount(body.get("price"));
-        putSetting(GOLD_PRICE_KEY, price.toPlainString());
-        return ResponseEntity.ok(ApiResponse.success(Map.of("price", price), "Gold price updated"));
-    }
-
-    private BigDecimal toPositiveAmount(Object raw) {
-        BigDecimal amount;
-        if (raw instanceof Number n) {
-            amount = BigDecimal.valueOf(n.doubleValue());
-        } else if (raw instanceof String s) {
-            try {
-                amount = new BigDecimal(s.trim());
-            } catch (NumberFormatException e) {
-                throw new BadRequestException("Enter a valid price");
-            }
-        } else {
-            throw new BadRequestException("Enter a valid price");
-        }
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BadRequestException("Enter a valid price");
-        }
-        return amount.setScale(2, RoundingMode.HALF_UP);
     }
 }

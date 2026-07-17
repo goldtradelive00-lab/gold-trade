@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table";
 
 type RequestStatus = "pending" | "approved" | "rejected";
+type PayoutMethod = "bank_transfer" | "jazzcash" | "binance";
 
 interface WithdrawRequestRow {
   id: string;
@@ -38,8 +39,9 @@ interface WithdrawRequestRow {
   email: string;
   phone_number: string | null;
   amount: number;
+  method: PayoutMethod;
   bank_name: string;
-  account_title: string;
+  account_title: string | null;
   account_number: string;
   requested_at: string;
   reviewed_at: string | null;
@@ -51,6 +53,12 @@ const STATUS_BADGE: Record<RequestStatus, string> = {
   pending: "bg-secondary text-secondary-foreground",
   approved: "bg-primary text-primary-foreground",
   rejected: "bg-destructive text-destructive-foreground",
+};
+
+const ACCOUNT_NUMBER_LABEL: Record<PayoutMethod, string> = {
+  bank_transfer: "Account Number / IBAN",
+  jazzcash: "JazzCash Number",
+  binance: "Binance Address",
 };
 
 export default function AdminWithdrawalsPage() {
@@ -209,9 +217,14 @@ export default function AdminWithdrawalsPage() {
                 label="Amount"
                 value={<span className="font-serif-display text-primary">{formatCurrency(viewing.amount)}</span>}
               />
-              <DetailRow label="Bank / Wallet" value={viewing.bank_name} />
-              <DetailRow label="Account Title" value={viewing.account_title} />
-              <DetailRow label="Account Number / IBAN" value={viewing.account_number} />
+              <DetailRow label="Payout Method" value={viewing.bank_name} />
+              {viewing.account_title && (
+                <DetailRow label="Account Title" value={viewing.account_title} />
+              )}
+              <DetailRow
+                label={ACCOUNT_NUMBER_LABEL[viewing.method]}
+                value={viewing.account_number}
+              />
               <DetailRow label="Requested" value={new Date(viewing.requested_at).toLocaleString()} />
               <DetailRow
                 label="Status"

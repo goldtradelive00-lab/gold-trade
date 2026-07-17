@@ -1,15 +1,25 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { generateGoldSeries, type GoldPricePoint } from "@/lib/gold-price";
 
 const GOLD = "#ecc246";
 const HISTORY_DAYS = 30;
+const LIVE_POLL_MS = 60_000;
+
+interface GoldPriceResponse {
+  price: number;
+  date: string;
+}
+
+interface GoldHistoryRow {
+  date: string; // YYYY-MM-DD
+  price: number;
+}
 
 function formatDateLabel(dateStr: string) {
   return new Date(dateStr + "T00:00:00Z").toLocaleDateString("en-US", {
@@ -24,7 +34,7 @@ function CustomTooltip({
   payload,
 }: {
   active?: boolean;
-  payload?: { value: number; payload: GoldPricePoint }[];
+  payload?: { value: number; payload: GoldHistoryRow }[];
 }) {
   if (!active || !payload?.length) return null;
   return (
@@ -36,23 +46,24 @@ function CustomTooltip({
 }
 
 export function GoldPriceChart() {
-  const [data, setData] = useState<GoldPricePoint[] | null>(null);
-
-  const { data: goldPriceSetting } = useQuery({
-    queryKey: ["settings", "gold-price"],
-    queryFn: () => api.get<{ price: number }>("/api/settings/gold-price"),
+  const { data: live } = useQuery({
+    queryKey: ["market", "gold"],
+    queryFn: () => api.get<GoldPriceResponse>("/api/market/gold"),
+    refetchInterval: LIVE_POLL_MS,
   });
 
-  // Generate on the client (after the admin-set price loads) to avoid a server/client
-  // hydration mismatch from the randomised data, and so the chart is anchored to
-  // today's admin-configured gold price.
-  useEffect(() => {
-    if (goldPriceSetting) {
-      setData(generateGoldSeries(HISTORY_DAYS, goldPriceSetting.price));
-    }
-  }, [goldPriceSetting]);
+  const { data: history } = useQuery({
+    queryKey: ["market", "gold", "history"],
+    queryFn: () => api.get<GoldHistoryRow[]>(`/api/market/gold/history?days=${HISTORY_DAYS}`),
+    staleTime: 60_000,
+  });
 
-  const chartData = data ?? [];
+  const chartData = useMemo<GoldHistoryRow[]>(() => {
+    const points = history ?? [];
+    if (!live) return points;
+    const withoutToday = points.filter((p) => p.date !== live.date);
+    return [...withoutToday, { date: live.date, price: live.price }];
+  }, [history, live]);
 
   const domain = useMemo<[number, number]>(() => {
     if (chartData.length === 0) return [0, 1];
@@ -63,7 +74,7 @@ export function GoldPriceChart() {
     return [Math.floor(min - pad), Math.ceil(max + pad)];
   }, [chartData]);
 
-  const current = chartData.length > 0 ? chartData[chartData.length - 1].price : null;
+  const current = live?.price ?? (chartData.length > 0 ? chartData[chartData.length - 1].price : null);
   const openPrice = chartData.length > 0 ? chartData[0].price : current;
   const change = current !== null && openPrice !== null ? current - openPrice : 0;
   const changePct = openPrice ? (change / openPrice) * 100 : 0;
@@ -127,7 +138,7 @@ export function GoldPriceChart() {
       </div>
 
       <p className="mt-4 text-xs text-muted-foreground">
-        Illustrative gold price movement (USD per troy ounce).
+        Set daily by the GoldTrade team.
       </p>
     </div>
   );
