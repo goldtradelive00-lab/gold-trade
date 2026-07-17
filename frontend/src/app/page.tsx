@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { MarketingNav } from "@/components/marketing/marketing-nav";
+import { LandingGoldChart } from "@/components/marketing/landing-gold-chart";
 import { Button } from "@/components/ui/button";
 import {
   ShieldCheck,
@@ -49,17 +50,14 @@ export default function LandingPage() {
 
           <div className="hairline-border rounded-xl bg-card p-6">
             <p className="text-xs uppercase tracking-widest text-muted-foreground">
-              The GoldTrade Advantage
+              Gold Rate · 24K / oz (USD)
             </p>
-            <div className="mt-6 space-y-6">
-              <div>
-                <p className="font-serif-display text-3xl text-primary">1% Daily Profit</p>
-                <p className="mt-1 text-xs text-muted-foreground">Credited to your cash balance every day</p>
-              </div>
-              <div>
-                <p className="font-serif-display text-3xl text-foreground">5% Referral Bonus</p>
-                <p className="mt-1 text-xs text-muted-foreground">Every time someone you referred deposits</p>
-              </div>
+            <div className="mt-2">
+              <LandingGoldChart />
+            </div>
+            <div className="mt-4 flex justify-between text-xs text-muted-foreground">
+              <span>Daily Profit <span className="text-primary">1% on principal</span></span>
+              <span>Referral Bonus <span className="text-foreground">5% per deposit</span></span>
             </div>
           </div>
           </div>
