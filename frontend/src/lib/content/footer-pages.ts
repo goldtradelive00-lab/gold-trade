@@ -28,14 +28,14 @@ export const howItWorksPage: FooterPage = {
     {
       heading: "2. Make a Deposit",
       paragraphs: [
-        "From your dashboard, submit a deposit request and send the funds using any major Pakistani bank, JazzCash, Easypaisa, NayaPay, or SadaPay. Confirm your payment receipt over WhatsApp so our team can match it to your request.",
+        "From your dashboard, submit a deposit request, choosing JazzCash or Binance USDT as your payment method. Confirm your payment receipt over WhatsApp so our team can match it to your request.",
         "Our team manually verifies every receipt before crediting an account, which typically takes up to 24 hours. Once approved, the amount is added to both your cash balance and your principal balance.",
       ],
     },
     {
       heading: "3. Read Your Dashboard",
       paragraphs: [
-        "Your dashboard shows two numbers: cash balance, the amount you can withdraw right now, and principal balance, the deposited amount that earns your daily profit. A live Pakistan gold rate chart sits above them, and a running transaction list below shows every deposit, withdrawal, referral bonus, and profit credit as it happens.",
+        "Your dashboard shows two numbers: cash balance, the amount you can withdraw right now, and principal balance, the deposited amount that earns your daily profit. A running transaction list below shows every deposit, withdrawal, referral bonus, and profit credit as it happens.",
         "Nothing on the dashboard is delayed or hidden: what you see is what you can withdraw, subject to admin review on pending requests.",
       ],
     },
@@ -66,13 +66,13 @@ export const productPages: Record<string, FooterPage> = {
     title: "Dashboard",
     kicker: "Product",
     intro: [
-      "Your GoldTrade dashboard shows exactly where your money stands: your cash balance, your deposited principal, and the live Pakistan gold rate, all in one screen.",
+      "Your GoldTrade dashboard shows exactly where your money stands: your cash balance and your deposited principal, all in one screen.",
     ],
     sections: [
       {
         heading: "What You'll See",
         paragraphs: [
-          "The top of your dashboard shows two numbers: your cash balance (what you can withdraw right now) and your principal balance (the deposited amount that earns your daily 1% profit). Below that is a live chart of the Pakistan gold rate, refreshed automatically throughout the day.",
+          "The top of your dashboard shows two numbers: your cash balance (what you can withdraw right now) and your principal balance (the deposited amount that earns your daily 1% profit).",
           "Underneath, a running list of recent transactions shows every deposit, withdrawal, referral bonus, and daily profit credit as it happens, each with a date, description, and amount, so you never have to guess what changed your balance.",
         ],
       },
@@ -104,7 +104,7 @@ export const productPages: Record<string, FooterPage> = {
         heading: "How the 1% Is Calculated",
         paragraphs: [
           "This profit does not compound: the 1% is always calculated on your principal, not on your accumulated profit, so the calculation stays simple and predictable rather than escalating over time.",
-          "For example, if your principal balance is Rs 100,000, you earn Rs 1,000 in profit that day, credited to your cash balance. The next day, the calculation still starts from the Rs 100,000 principal, not Rs 101,000, so your daily profit stays flat unless you deposit more or withdraw part of your principal.",
+          "For example, if your principal balance is $10,000, you earn $100 in profit that day, credited to your cash balance. The next day, the calculation still starts from the $10,000 principal, not $10,100, so your daily profit stays flat unless you deposit more or withdraw part of your principal.",
         ],
       },
       {
@@ -145,7 +145,7 @@ export const productPages: Record<string, FooterPage> = {
       {
         heading: "How Commissions Are Calculated",
         paragraphs: [
-          "When someone signs up using your link and their first deposit is approved, you automatically earn a 5% bonus on that deposit amount, credited straight to your cash balance. For example, if the person you referred deposits Rs 20,000 and it's approved, you receive Rs 1,000 the moment that approval happens, with no extra step on your end.",
+          "When someone signs up using your link and their first deposit is approved, you automatically earn a 5% bonus on that deposit amount, credited straight to your cash balance. For example, if the person you referred deposits $2,000 and it's approved, you receive $100 the moment that approval happens, with no extra step on your end.",
           "This 5% applies to every approved deposit the referred member makes, not just their first one, for as long as they remain a member and continue depositing.",
         ],
       },
@@ -275,7 +275,7 @@ export const companyPages: Record<string, FooterPage> = {
       {
         heading: "What We Collect",
         paragraphs: [
-          "When you open an account, we collect your full name, email address, and phone number. When you submit a deposit or withdrawal request, we collect the bank or mobile wallet name, account title, and account number or IBAN needed to process it, along with the WhatsApp number you use to send your payment receipt.",
+          "When you open an account, we collect your full name, email address, and phone number. When you submit a deposit request, we collect the payment method you used (JazzCash or Binance USDT) and, if you provide one, a transaction reference. When you submit a withdrawal request, we collect the bank or mobile wallet account details needed to send the funds.",
         ],
       },
       {
@@ -313,7 +313,7 @@ export const legalPages: Record<string, FooterPage> = {
       {
         heading: "The Platform",
         paragraphs: [
-          "GoldTrade is a deposit, daily-profit, and referral-bonus platform. Deposits are made by bank transfer or mobile wallet and are credited to your account only after manual verification against the payment receipt you provide. Withdrawals are processed to the bank or wallet account you specify, after manual admin review. Daily profit (currently 1% of your deposited principal per day) and referral bonuses (currently 5% of a referred member's approved deposit) are set by GoldTrade and may be changed, paused, or discontinued at any time without prior notice.",
+          "GoldTrade is a deposit, daily-profit, and referral-bonus platform. Deposits are made via JazzCash or Binance USDT and are credited to your account only after manual verification against the payment receipt you provide. Withdrawals are processed to the bank or wallet account you specify, after manual admin review. Daily profit (currently 1% of your deposited principal per day) and referral bonuses (currently 5% of a referred member's approved deposit) are set by GoldTrade and may be changed, paused, or discontinued at any time without prior notice.",
         ],
       },
       {
@@ -366,7 +366,7 @@ export const legalPages: Record<string, FooterPage> = {
       {
         heading: "No Investment Advice",
         paragraphs: [
-          "Nothing displayed on GoldTrade, including gold rate information, daily profit figures, or referral bonus totals, should be interpreted as a recommendation to deposit, withdraw, or otherwise manage your finances in any particular way. You should make your own decisions about whether GoldTrade fits your personal financial situation.",
+          "Nothing displayed on GoldTrade, including daily profit figures or referral bonus totals, should be interpreted as a recommendation to deposit, withdraw, or otherwise manage your finances in any particular way. You should make your own decisions about whether GoldTrade fits your personal financial situation.",
         ],
       },
       {

@@ -238,7 +238,7 @@ export default function WithdrawPage() {
           </DialogHeader>
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-4">
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount (PKR)</Label>
+              <Label htmlFor="amount">Amount (USD)</Label>
               <Input
                 id="amount"
                 type="number"

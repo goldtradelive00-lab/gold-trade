@@ -9,7 +9,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TableSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { GoldPriceChart } from "@/components/investor/gold-price-chart";
 import { useMarkSectionRead } from "@/lib/use-mark-section-read";
 import {
   Table,
@@ -57,14 +56,11 @@ export default function InvestorDashboardPage() {
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          <Skeleton className="h-72 lg:col-span-2" />
-          <div className="hairline-border rounded-xl bg-card p-6">
-            <Skeleton className="h-3 w-28" />
-            <div className="mt-4 flex flex-col gap-3">
-              <Skeleton className="h-9 w-full" />
-              <Skeleton className="h-9 w-full" />
-            </div>
+        <div className="hairline-border rounded-xl bg-card p-6">
+          <Skeleton className="h-3 w-28" />
+          <div className="mt-4 flex flex-col gap-3 sm:max-w-xs">
+            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-9 w-full" />
           </div>
         </div>
 
@@ -92,21 +88,15 @@ export default function InvestorDashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <GoldPriceChart />
-        </div>
-
-        <div className="hairline-border rounded-xl bg-card p-6">
-          <h2 className="text-sm uppercase tracking-widest text-muted-foreground">Quick Actions</h2>
-          <div className="mt-4 flex flex-col gap-3">
-            <Button asChild>
-              <Link href="/investor/deposit">Deposit Funds</Link>
-            </Button>
-            <Button variant="outline" className="border-primary text-primary" asChild>
-              <Link href="/investor/withdraw">Withdraw</Link>
-            </Button>
-          </div>
+      <div className="hairline-border rounded-xl bg-card p-6">
+        <h2 className="text-sm uppercase tracking-widest text-muted-foreground">Quick Actions</h2>
+        <div className="mt-4 flex flex-col gap-3 sm:max-w-xs sm:flex-row">
+          <Button asChild>
+            <Link href="/investor/deposit">Deposit Funds</Link>
+          </Button>
+          <Button variant="outline" className="border-primary text-primary" asChild>
+            <Link href="/investor/withdraw">Withdraw</Link>
+          </Button>
         </div>
       </div>
 

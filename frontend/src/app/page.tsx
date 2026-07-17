@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { MarketingNav } from "@/components/marketing/marketing-nav";
-import { LandingGoldChart } from "@/components/marketing/landing-gold-chart";
 import { Button } from "@/components/ui/button";
 import {
   ShieldCheck,
@@ -35,9 +34,8 @@ export default function LandingPage() {
               <span className="text-primary">Backed by Gold</span>
             </h1>
             <p className="mt-6 max-w-md text-muted-foreground">
-              Deposit through your favourite bank or mobile wallet, earn 1% profit on your
-              principal every day, and track live Pakistan gold rates, all from one simple
-              dashboard.
+              Deposit via JazzCash or Binance USDT, earn 1% profit on your principal every day,
+              and track every dollar in one simple dashboard.
             </p>
             <div className="mt-8 flex gap-4">
               <Button size="lg" asChild>
@@ -51,14 +49,17 @@ export default function LandingPage() {
 
           <div className="hairline-border rounded-xl bg-card p-6">
             <p className="text-xs uppercase tracking-widest text-muted-foreground">
-              Gold Rate: Pakistan · 24K / Tola
+              The GoldTrade Advantage
             </p>
-            <div className="mt-2">
-              <LandingGoldChart />
-            </div>
-            <div className="mt-4 flex justify-between text-xs text-muted-foreground">
-              <span>Daily Profit <span className="text-primary">1% on principal</span></span>
-              <span>Referral Bonus <span className="text-foreground">5% per deposit</span></span>
+            <div className="mt-6 space-y-6">
+              <div>
+                <p className="font-serif-display text-3xl text-primary">1% Daily Profit</p>
+                <p className="mt-1 text-xs text-muted-foreground">Credited to your cash balance every day</p>
+              </div>
+              <div>
+                <p className="font-serif-display text-3xl text-foreground">5% Referral Bonus</p>
+                <p className="mt-1 text-xs text-muted-foreground">Every time someone you referred deposits</p>
+              </div>
             </div>
           </div>
           </div>
@@ -85,7 +86,7 @@ export default function LandingPage() {
               <ShieldCheck className="size-4 text-primary" /> Every Deposit Manually Verified
             </span>
             <span className="flex items-center gap-2">
-              <Wallet className="size-4 text-primary" /> All Major Pakistani Banks &amp; Wallets
+              <Wallet className="size-4 text-primary" /> JazzCash &amp; Binance USDT Accepted
             </span>
             <span className="flex items-center gap-2">
               <Lock className="size-4 text-primary" /> Encrypted Account Access
@@ -103,7 +104,7 @@ export default function LandingPage() {
             <FeatureCard
               icon={<Wallet className="size-5 text-primary" />}
               title="Deposit Your Way"
-              body="Send funds from JazzCash, Easypaisa, NayaPay, SadaPay, or any major Pakistani bank, then confirm your receipt over WhatsApp."
+              body="Pay via JazzCash or Binance USDT, then confirm your receipt over WhatsApp."
             />
             <FeatureCard
               icon={<TrendingUp className="size-5 text-primary" />}
@@ -130,7 +131,7 @@ export default function LandingPage() {
           <div className="relative mx-auto max-w-2xl px-6 text-center">
             <p className="font-serif-display text-5xl text-primary/40">&rdquo;</p>
             <blockquote className="font-serif-display text-xl italic leading-relaxed text-foreground md:text-2xl">
-              I deposited through Easypaisa, confirmed my receipt on WhatsApp, and my profit
+              I deposited through JazzCash, confirmed my receipt on WhatsApp, and my profit
               started showing up the very next day. Referring two friends made it even better:
               their deposits earn me a bonus too.
             </blockquote>
@@ -144,7 +145,7 @@ export default function LandingPage() {
           <div className="mx-auto max-w-6xl px-6">
             <p className="text-xs uppercase tracking-widest text-primary">Built on Trust</p>
             <h2 className="font-serif-display mt-2 max-w-lg text-2xl text-foreground md:text-3xl">
-              Every Rupee Accounted For
+              Every Dollar Accounted For
             </h2>
             <div className="mt-10 grid gap-6 md:grid-cols-3">
               <FeatureCard

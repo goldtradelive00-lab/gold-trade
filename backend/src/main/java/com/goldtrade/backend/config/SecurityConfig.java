@@ -65,8 +65,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // Public liveness probe for the hosting platform's health check
                 .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
-                // Public market data (gold price + history) — used by the anonymous landing page
-                .requestMatchers(HttpMethod.GET, "/api/market/gold", "/api/market/gold/history").permitAll()
                 // Public auth endpoints
                 .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()

@@ -207,7 +207,7 @@ export default function AdminInvestorsPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="transfer_amount">Amount (PKR)</Label>
+              <Label htmlFor="transfer_amount">Amount (USD)</Label>
               <Input
                 id="transfer_amount"
                 type="number"

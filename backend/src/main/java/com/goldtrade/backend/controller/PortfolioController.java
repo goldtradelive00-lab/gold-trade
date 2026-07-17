@@ -1,7 +1,6 @@
 package com.goldtrade.backend.controller;
 
 import com.goldtrade.backend.dto.response.ApiResponse;
-import com.goldtrade.backend.entity.AppSetting;
 import com.goldtrade.backend.entity.DepositRequest;
 import com.goldtrade.backend.entity.Portfolio;
 import com.goldtrade.backend.entity.ReferralEarning;
@@ -10,7 +9,6 @@ import com.goldtrade.backend.entity.User;
 import com.goldtrade.backend.entity.WithdrawRequest;
 import com.goldtrade.backend.exception.BadRequestException;
 import com.goldtrade.backend.exception.ResourceNotFoundException;
-import com.goldtrade.backend.repository.AppSettingRepository;
 import com.goldtrade.backend.repository.DepositRequestRepository;
 import com.goldtrade.backend.repository.PortfolioRepository;
 import com.goldtrade.backend.repository.ReferralEarningRepository;
@@ -31,14 +29,10 @@ import java.util.Map;
 @RequestMapping("/api/portfolio")
 public class PortfolioController {
 
-    private static final String DEPOSIT_WHATSAPP_KEY = "deposit_whatsapp_number";
-    private static final String DEPOSIT_WHATSAPP_DEFAULT = "03001234567";
-
     private final PortfolioRepository portfolioRepo;
     private final TransactionRepository transactionRepo;
     private final WithdrawRequestRepository withdrawRequestRepo;
     private final DepositRequestRepository depositRequestRepo;
-    private final AppSettingRepository settingRepo;
     private final UserRepository userRepo;
     private final ReferralEarningRepository referralEarningRepo;
     private final NotificationService notificationService;
@@ -47,7 +41,6 @@ public class PortfolioController {
                                 TransactionRepository transactionRepo,
                                 WithdrawRequestRepository withdrawRequestRepo,
                                 DepositRequestRepository depositRequestRepo,
-                                AppSettingRepository settingRepo,
                                 UserRepository userRepo,
                                 ReferralEarningRepository referralEarningRepo,
                                 NotificationService notificationService) {
@@ -55,7 +48,6 @@ public class PortfolioController {
         this.transactionRepo = transactionRepo;
         this.withdrawRequestRepo = withdrawRequestRepo;
         this.depositRequestRepo = depositRequestRepo;
-        this.settingRepo = settingRepo;
         this.userRepo = userRepo;
         this.referralEarningRepo = referralEarningRepo;
         this.notificationService = notificationService;
@@ -104,29 +96,23 @@ public class PortfolioController {
     }
 
     // POST /api/portfolio/deposit-requests — submits a request for admin review once the
-    // investor has sent a receipt via WhatsApp; cash is only credited on approval
+    // investor has paid via JazzCash or Binance and sent a receipt via WhatsApp; the amount
+    // is set by the admin from the receipt at approval time, not by the investor here
     @PostMapping("/deposit-requests")
     public ResponseEntity<ApiResponse<?>> requestDeposit(@RequestBody Map<String, Object> body, Authentication auth) {
         String userId = (String) auth.getPrincipal();
-        BigDecimal amount = toAmount(body.get("amount"));
-        String bankName = requireText(body.get("bank_name"), "Select a bank or wallet");
-        String accountTitle = requireText(body.get("account_title"), "Enter the account title");
-        String accountNumber = requireText(body.get("account_number"), "Enter the account number or IBAN");
-        String senderWhatsapp = requireText(body.get("sender_whatsapp"),
-                "Enter the WhatsApp number you used to send the receipt");
-
-        String adminWhatsapp = settingRepo.findById(DEPOSIT_WHATSAPP_KEY)
-                .map(AppSetting::getValue)
-                .orElse(DEPOSIT_WHATSAPP_DEFAULT);
+        String paymentMethod = requireText(body.get("payment_method"), "Select a payment method");
+        if (!"jazzcash".equals(paymentMethod) && !"binance".equals(paymentMethod)) {
+            throw new BadRequestException("Select a valid payment method");
+        }
+        String transactionReference = body.get("transaction_reference") == null
+                ? null : body.get("transaction_reference").toString().trim();
+        if (transactionReference != null && transactionReference.isEmpty()) transactionReference = null;
 
         DepositRequest request = new DepositRequest();
         request.setUserId(userId);
-        request.setAmount(amount);
-        request.setBankName(bankName);
-        request.setAccountTitle(accountTitle);
-        request.setAccountNumber(accountNumber);
-        request.setSenderWhatsapp(senderWhatsapp);
-        request.setAdminWhatsappNumber(adminWhatsapp);
+        request.setPaymentMethod(paymentMethod);
+        request.setTransactionReference(transactionReference);
         request.setStatus("pending");
         depositRequestRepo.save(request);
 
@@ -134,7 +120,8 @@ public class PortfolioController {
         notificationService.notifyAllAdmins(
                 "new_deposit_request",
                 "New deposit request",
-                (investor != null ? investor.getFullName() : "An investor") + " requested a deposit of " + formatAmount(amount) + ".",
+                (investor != null ? investor.getFullName() : "An investor") + " submitted a deposit request via "
+                        + ("binance".equals(paymentMethod) ? "Binance USDT" : "JazzCash") + ".",
                 "/admin/deposit-requests",
                 "admin_deposit"
         );
@@ -226,12 +213,12 @@ public class PortfolioController {
     }
 
     private String formatAmount(BigDecimal amount) {
-        return "Rs " + amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
+        return "$" + amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 
     // Sanity ceiling on a single deposit/withdrawal request. Generous, but blocks absurd or
     // fat-fingered values (e.g. overflow attempts) from ever entering the money flow.
-    private static final BigDecimal MAX_AMOUNT = new BigDecimal("1000000000"); // 1 billion PKR
+    private static final BigDecimal MAX_AMOUNT = new BigDecimal("1000000"); // 1 million USD
 
     private BigDecimal toAmount(Object raw) {
         BigDecimal amount;

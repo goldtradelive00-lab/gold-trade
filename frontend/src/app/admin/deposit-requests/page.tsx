@@ -8,6 +8,8 @@ import { api } from "@/lib/api";
 import { formatCurrency, getErrorMessage } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { TableSkeleton } from "@/components/skeletons";
 import { DetailRow } from "@/components/admin/detail-row";
 import { useMarkSectionRead } from "@/lib/use-mark-section-read";
@@ -30,18 +32,16 @@ import {
 } from "@/components/ui/table";
 
 type RequestStatus = "pending" | "approved" | "rejected";
+type PaymentMethod = "jazzcash" | "binance";
 
 interface DepositRequestRow {
   id: string;
   customer: string;
   email: string;
   phone_number: string | null;
-  amount: number;
-  bank_name: string;
-  account_title: string;
-  account_number: string;
-  sender_whatsapp: string;
-  admin_whatsapp_number: string;
+  amount: number | null;
+  payment_method: PaymentMethod;
+  transaction_reference: string | null;
   requested_at: string;
   reviewed_at: string | null;
   reviewed_by_name: string | null;
@@ -54,10 +54,17 @@ const STATUS_BADGE: Record<RequestStatus, string> = {
   rejected: "bg-destructive text-destructive-foreground",
 };
 
+const METHOD_LABEL: Record<PaymentMethod, string> = {
+  jazzcash: "JazzCash",
+  binance: "Binance USDT",
+};
+
 export default function AdminDepositRequestsPage() {
   useMarkSectionRead("admin_deposit");
   const queryClient = useQueryClient();
   const [viewingId, setViewingId] = useState<string | null>(null);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [approveAmount, setApproveAmount] = useState("");
   const [reviewingKey, setReviewingKey] = useState<string | null>(null);
   const {
     data: requests,
@@ -70,12 +77,43 @@ export default function AdminDepositRequestsPage() {
     refetchInterval: 10_000,
   });
 
-  const review = async (id: string, action: "approve" | "reject") => {
-    const key = `${id}:${action}`;
+  const openApprove = (id: string) => {
+    setApprovingId(id);
+    setApproveAmount("");
+  };
+  const closeApprove = () => {
+    setApprovingId(null);
+    setApproveAmount("");
+  };
+
+  const confirmApprove = async () => {
+    if (!approvingId) return;
+    const value = parseFloat(approveAmount);
+    if (!value || value <= 0) {
+      toast.error("Enter a valid amount");
+      return;
+    }
+    const key = `${approvingId}:approve`;
     setReviewingKey(key);
     try {
-      await api.post(`/api/admin/deposit-requests/${id}/${action}`);
-      toast.success(action === "approve" ? "Deposit approved" : "Deposit rejected");
+      await api.post(`/api/admin/deposit-requests/${approvingId}/approve`, { amount: value });
+      toast.success("Deposit approved");
+      queryClient.invalidateQueries({ queryKey: ["admin", "deposit-requests"] });
+      closeApprove();
+      setViewingId(null);
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setReviewingKey(null);
+    }
+  };
+
+  const reject = async (id: string) => {
+    const key = `${id}:reject`;
+    setReviewingKey(key);
+    try {
+      await api.post(`/api/admin/deposit-requests/${id}/reject`);
+      toast.success("Deposit rejected");
       queryClient.invalidateQueries({ queryKey: ["admin", "deposit-requests"] });
       setViewingId(null);
     } catch (err) {
@@ -90,6 +128,7 @@ export default function AdminDepositRequestsPage() {
   }
 
   const viewing = requests.find((r) => r.id === viewingId) ?? null;
+  const approving = requests.find((r) => r.id === approvingId) ?? null;
 
   const pending = requests.filter((r) => r.status === "pending");
   const approved = requests.filter((r) => r.status === "approved");
@@ -103,7 +142,7 @@ export default function AdminDepositRequestsPage() {
         <TableHeader>
           <TableRow>
             <TableHead>Investor</TableHead>
-            <TableHead className="hidden md:table-cell">Bank / Wallet</TableHead>
+            <TableHead className="hidden md:table-cell">Method</TableHead>
             <TableHead className="hidden md:table-cell">Requested</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Amount</TableHead>
@@ -117,7 +156,9 @@ export default function AdminDepositRequestsPage() {
                 <p className="text-foreground">{r.customer}</p>
                 <p className="text-xs text-muted-foreground">{r.email}</p>
               </TableCell>
-              <TableCell className="hidden text-muted-foreground md:table-cell">{r.bank_name}</TableCell>
+              <TableCell className="hidden text-muted-foreground md:table-cell">
+                {METHOD_LABEL[r.payment_method]}
+              </TableCell>
               <TableCell className="hidden text-muted-foreground md:table-cell">
                 {new Date(r.requested_at).toLocaleDateString()}
               </TableCell>
@@ -125,7 +166,7 @@ export default function AdminDepositRequestsPage() {
                 <Badge className={STATUS_BADGE[r.status]}>{r.status.toUpperCase()}</Badge>
               </TableCell>
               <TableCell className="font-serif-display text-right text-foreground">
-                {formatCurrency(r.amount)}
+                {r.amount != null ? formatCurrency(r.amount) : "—"}
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex flex-wrap justify-end gap-2">
@@ -136,16 +177,15 @@ export default function AdminDepositRequestsPage() {
                     <>
                       <Button
                         size="sm"
-                        onClick={() => review(r.id, "approve")}
-                        loading={reviewingKey === `${r.id}:approve`}
-                        disabled={reviewingKey !== null && reviewingKey !== `${r.id}:approve`}
+                        onClick={() => openApprove(r.id)}
+                        disabled={reviewingKey !== null}
                       >
                         Approve
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => review(r.id, "reject")}
+                        onClick={() => reject(r.id)}
                         loading={reviewingKey === `${r.id}:reject`}
                         disabled={reviewingKey !== null && reviewingKey !== `${r.id}:reject`}
                       >
@@ -204,13 +244,17 @@ export default function AdminDepositRequestsPage() {
               <DetailRow label="Phone" value={viewing.phone_number || "N/A"} />
               <DetailRow
                 label="Amount"
-                value={<span className="font-serif-display text-primary">{formatCurrency(viewing.amount)}</span>}
+                value={
+                  <span className="font-serif-display text-primary">
+                    {viewing.amount != null ? formatCurrency(viewing.amount) : "Not yet set"}
+                  </span>
+                }
               />
-              <DetailRow label="Bank / Wallet" value={viewing.bank_name} />
-              <DetailRow label="Account Title" value={viewing.account_title} />
-              <DetailRow label="Account Number / IBAN" value={viewing.account_number} />
-              <DetailRow label="Sender's WhatsApp" value={viewing.sender_whatsapp} />
-              <DetailRow label="Admin WhatsApp Shown" value={viewing.admin_whatsapp_number} />
+              <DetailRow label="Payment Method" value={METHOD_LABEL[viewing.payment_method]} />
+              <DetailRow
+                label="Transaction Reference"
+                value={viewing.transaction_reference || "N/A"}
+              />
               <DetailRow label="Requested" value={new Date(viewing.requested_at).toLocaleString()} />
               <DetailRow
                 label="Status"
@@ -229,7 +273,7 @@ export default function AdminDepositRequestsPage() {
               <Button
                 variant="outline"
                 className="w-full sm:w-auto"
-                onClick={() => review(viewing.id, "reject")}
+                onClick={() => reject(viewing.id)}
                 loading={reviewingKey === `${viewing.id}:reject`}
                 disabled={reviewingKey !== null && reviewingKey !== `${viewing.id}:reject`}
               >
@@ -237,14 +281,49 @@ export default function AdminDepositRequestsPage() {
               </Button>
               <Button
                 className="w-full sm:w-auto"
-                onClick={() => review(viewing.id, "approve")}
-                loading={reviewingKey === `${viewing.id}:approve`}
-                disabled={reviewingKey !== null && reviewingKey !== `${viewing.id}:approve`}
+                onClick={() => openApprove(viewing.id)}
+                disabled={reviewingKey !== null}
               >
                 Approve
               </Button>
             </DialogFooter>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!approving} onOpenChange={(v) => !v && closeApprove()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Approve Deposit</DialogTitle>
+            <DialogDescription>
+              Enter the amount confirmed from {approving ? approving.customer : "the investor"}&apos;s
+              WhatsApp receipt.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="approve_amount">Amount (USD)</Label>
+            <Input
+              id="approve_amount"
+              type="number"
+              min="0"
+              placeholder="0.00"
+              value={approveAmount}
+              onChange={(e) => setApproveAmount(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" className="w-full sm:w-auto" onClick={closeApprove}>
+              Cancel
+            </Button>
+            <Button
+              className="w-full sm:w-auto"
+              onClick={confirmApprove}
+              loading={reviewingKey === `${approvingId}:approve`}
+            >
+              Confirm & Credit
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

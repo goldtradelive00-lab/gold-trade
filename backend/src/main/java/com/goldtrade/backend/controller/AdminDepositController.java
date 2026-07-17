@@ -72,30 +72,34 @@ public class AdminDepositController {
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
-    // POST /api/admin/deposit-requests/{id}/approve — credits cash and logs a transaction
+    // POST /api/admin/deposit-requests/{id}/approve — admin enters the amount confirmed from
+    // the WhatsApp receipt; credits cash and logs a transaction for that amount
     @Transactional
     @PostMapping("/{id}/approve")
-    public ResponseEntity<ApiResponse<?>> approve(@PathVariable String id, Authentication auth) {
+    public ResponseEntity<ApiResponse<?>> approve(@PathVariable String id, @RequestBody Map<String, Object> body, Authentication auth) {
         DepositRequest request = depositRequestRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Deposit request not found"));
         if (!"pending".equals(request.getStatus())) {
             throw new BadRequestException("This request has already been reviewed");
         }
 
+        BigDecimal amount = toAmount(body.get("amount"));
+        request.setAmount(amount);
+
         Portfolio portfolio = portfolioRepo.findByUserId(request.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Portfolio not found"));
 
-        portfolio.setCashBalance(portfolio.getCashBalance().add(request.getAmount()));
+        portfolio.setCashBalance(portfolio.getCashBalance().add(amount));
         // Deposits (not referral bonuses or profit) are the only thing that grows the
         // principal that earns the daily 1% — see DailyProfitService.
-        portfolio.setPrincipalBalance(portfolio.getPrincipalBalance().add(request.getAmount()));
+        portfolio.setPrincipalBalance(portfolio.getPrincipalBalance().add(amount));
         portfolioRepo.save(portfolio);
 
         Transaction tx = new Transaction();
         tx.setPortfolioId(portfolio.getId());
         tx.setType("deposit");
-        tx.setDescription("Deposit via " + request.getBankName());
-        tx.setAmount(request.getAmount());
+        tx.setDescription("Deposit via " + paymentMethodLabel(request.getPaymentMethod()));
+        tx.setAmount(amount);
         transactionRepo.save(tx);
 
         // Approved deposits are real cash entering the business, so the platform treasury
@@ -181,7 +185,8 @@ public class AdminDepositController {
                 request.getUserId(),
                 "deposit_rejected",
                 "Deposit not approved",
-                "Your deposit request of " + formatAmount(request.getAmount()) + " was not approved. Contact support if you believe this is a mistake.",
+                "Your deposit request via " + paymentMethodLabel(request.getPaymentMethod())
+                        + " was not approved. Contact support if you believe this is a mistake.",
                 "/investor/deposit",
                 "deposit"
         );
@@ -190,7 +195,40 @@ public class AdminDepositController {
     }
 
     private String formatAmount(BigDecimal amount) {
-        return "Rs " + amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
+        return "$" + amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
+    }
+
+    private String paymentMethodLabel(String method) {
+        return "binance".equals(method) ? "Binance USDT" : "JazzCash";
+    }
+
+    // Sanity ceiling on the amount an admin can credit in one approval — blocks fat-fingered
+    // values (e.g. an extra zero) from ever entering the money flow.
+    private static final BigDecimal MAX_AMOUNT = new BigDecimal("1000000"); // 1 million USD
+
+    private BigDecimal toAmount(Object raw) {
+        BigDecimal amount;
+        if (raw instanceof Number n) {
+            amount = BigDecimal.valueOf(n.doubleValue());
+        } else if (raw instanceof String s) {
+            try {
+                amount = new BigDecimal(s.trim());
+            } catch (NumberFormatException e) {
+                throw new BadRequestException("Enter a valid amount");
+            }
+        } else {
+            amount = BigDecimal.ZERO;
+        }
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestException("Enter a valid amount");
+        }
+        if (amount.stripTrailingZeros().scale() > 2) {
+            throw new BadRequestException("Amount can have at most 2 decimal places");
+        }
+        if (amount.compareTo(MAX_AMOUNT) > 0) {
+            throw new BadRequestException("Amount exceeds the maximum allowed per request");
+        }
+        return amount;
     }
 
     private Map<String, Object> toRow(DepositRequest request) {
@@ -204,11 +242,8 @@ public class AdminDepositController {
         map.put("email", investor != null ? investor.getEmail() : "");
         map.put("phone_number", investor != null ? investor.getPhoneNumber() : "");
         map.put("amount", request.getAmount());
-        map.put("bank_name", request.getBankName());
-        map.put("account_title", request.getAccountTitle());
-        map.put("account_number", request.getAccountNumber());
-        map.put("sender_whatsapp", request.getSenderWhatsapp());
-        map.put("admin_whatsapp_number", request.getAdminWhatsappNumber());
+        map.put("payment_method", request.getPaymentMethod());
+        map.put("transaction_reference", request.getTransactionReference());
         map.put("status", request.getStatus());
         map.put("requested_at", request.getRequestedAt());
         map.put("reviewed_at", request.getReviewedAt());

@@ -105,7 +105,7 @@ public class AdminTreasuryController {
     }
 
     private String formatAmount(BigDecimal amount) {
-        return "Rs " + amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
+        return "$" + amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 
     private BigDecimal toAmount(Object raw) {

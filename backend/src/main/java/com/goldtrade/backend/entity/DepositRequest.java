@@ -21,23 +21,33 @@ public class DepositRequest {
     @Column(name = "user_id", nullable = false)
     private String userId;
 
-    @Column(name = "amount", nullable = false)
+    // Null until an admin verifies the WhatsApp receipt and sets it during approval.
+    @Column(name = "amount")
     private BigDecimal amount;
 
-    @Column(name = "bank_name", nullable = false)
+    // Legacy fields from the old bank-transfer flow; left in place for historical rows,
+    // no longer populated by new requests.
+    @Column(name = "bank_name")
     private String bankName;
 
-    @Column(name = "account_title", nullable = false)
+    @Column(name = "account_title")
     private String accountTitle;
 
-    @Column(name = "account_number", nullable = false)
+    @Column(name = "account_number")
     private String accountNumber;
 
-    @Column(name = "sender_whatsapp", nullable = false)
+    @Column(name = "sender_whatsapp")
     private String senderWhatsapp;
 
     @Column(name = "admin_whatsapp_number")
     private String adminWhatsappNumber;
+
+    // "jazzcash" or "binance"
+    @Column(name = "payment_method")
+    private String paymentMethod;
+
+    @Column(name = "transaction_reference")
+    private String transactionReference;
 
     @Column(name = "status", nullable = false)
     private String status = "pending";

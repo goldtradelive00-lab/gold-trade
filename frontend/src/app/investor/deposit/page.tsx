@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Copy, RefreshCw } from "lucide-react";
 import { api } from "@/lib/api";
 import { formatCurrency, getErrorMessage } from "@/lib/utils";
 import type { PortfolioOverview } from "@/types/domain";
-import { PAKISTAN_BANKS } from "@/lib/pakistan-banks";
 import { useMarkSectionRead } from "@/lib/use-mark-section-read";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,13 +24,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -39,12 +32,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+const JAZZCASH_NUMBER = "03001234567";
+const BINANCE_NETWORK = "TRX (TRC20)";
+const BINANCE_ADDRESS = "TRGqwZ85XoV1xxqRk1fu6KbhyGX4rG5DnV";
+
+type PaymentMethod = "jazzcash" | "binance";
+
 interface DepositRequestRow {
   id: string;
-  amount: number;
-  bank_name: string;
-  account_title: string;
-  account_number: string;
+  amount: number | null;
+  payment_method: PaymentMethod;
+  transaction_reference: string | null;
   status: "pending" | "approved" | "rejected";
   requested_at: string;
 }
@@ -55,13 +53,14 @@ const STATUS_BADGE: Record<DepositRequestRow["status"], string> = {
   rejected: "bg-destructive text-destructive-foreground",
 };
 
+const METHOD_LABEL: Record<PaymentMethod, string> = {
+  jazzcash: "JazzCash",
+  binance: "Binance USDT",
+};
+
 const emptyForm = {
-  amount: "",
-  bank: "",
-  otherBank: "",
-  accountTitle: "",
-  accountNumber: "",
-  senderWhatsapp: "",
+  method: "" as PaymentMethod | "",
+  reference: "",
 };
 
 export default function DepositPage() {
@@ -103,7 +102,7 @@ export default function DepositPage() {
 
   const totalDeposited = history
     ?.filter((r) => r.status === "approved")
-    .reduce((sum, r) => sum + r.amount, 0) ?? 0;
+    .reduce((sum, r) => sum + (r.amount ?? 0), 0) ?? 0;
 
   const closeDialog = () => {
     setOpen(false);
@@ -112,51 +111,26 @@ export default function DepositPage() {
   };
 
   const goToStep2 = () => {
-    const value = parseFloat(form.amount);
-    if (!value || value <= 0) {
-      toast.error("Enter a valid amount");
-      return;
-    }
-    if (!form.bank) {
-      toast.error("Select a bank or wallet");
-      return;
-    }
-    if (form.bank === "Other" && !form.otherBank.trim()) {
-      toast.error("Enter the name of your bank or wallet");
-      return;
-    }
-    if (!form.accountTitle.trim()) {
-      toast.error("Enter the account title");
-      return;
-    }
-    if (!form.accountNumber.trim()) {
-      toast.error("Enter the account number or IBAN");
+    if (!form.method) {
+      toast.error("Choose how you paid");
       return;
     }
     setStep(2);
   };
 
-  const copyWhatsapp = async () => {
-    if (!whatsapp?.whatsapp_number) return;
-    await navigator.clipboard.writeText(whatsapp.whatsapp_number);
-    toast.success("WhatsApp number copied");
+  const copy = async (value: string, label: string) => {
+    await navigator.clipboard.writeText(value);
+    toast.success(`${label} copied`);
   };
 
   const submit = async () => {
-    if (!form.senderWhatsapp.trim()) {
-      toast.error("Enter the WhatsApp number you used to send the receipt");
-      return;
-    }
     setSubmitting(true);
     try {
       await api.post("/api/portfolio/deposit-requests", {
-        amount: parseFloat(form.amount),
-        bank_name: form.bank === "Other" ? form.otherBank.trim() : form.bank,
-        account_title: form.accountTitle,
-        account_number: form.accountNumber,
-        sender_whatsapp: form.senderWhatsapp,
+        payment_method: form.method,
+        transaction_reference: form.reference.trim() || undefined,
       });
-      toast.success("Deposit request submitted. Please allow up to 24 hours for approval.");
+      toast.success("Deposit request submitted. Our team will confirm your receipt shortly.");
       queryClient.invalidateQueries({ queryKey: ["portfolio", "deposit-requests"] });
       closeDialog();
     } catch (err) {
@@ -215,7 +189,7 @@ export default function DepositPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
-                <TableHead className="hidden sm:table-cell">Bank / Wallet</TableHead>
+                <TableHead className="hidden sm:table-cell">Method</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
               </TableRow>
@@ -226,12 +200,14 @@ export default function DepositPage() {
                   <TableCell className="text-muted-foreground">
                     {new Date(r.requested_at).toLocaleDateString()}
                   </TableCell>
-                  <TableCell className="hidden text-muted-foreground sm:table-cell">{r.bank_name}</TableCell>
+                  <TableCell className="hidden text-muted-foreground sm:table-cell">
+                    {METHOD_LABEL[r.payment_method]}
+                  </TableCell>
                   <TableCell>
                     <Badge className={STATUS_BADGE[r.status]}>{r.status.toUpperCase()}</Badge>
                   </TableCell>
                   <TableCell className="font-serif-display text-right text-foreground">
-                    {formatCurrency(r.amount)}
+                    {r.amount != null ? formatCurrency(r.amount) : "Pending review"}
                   </TableCell>
                 </TableRow>
               ))}
@@ -246,61 +222,79 @@ export default function DepositPage() {
             <>
               <DialogHeader>
                 <DialogTitle>Deposit Funds (Step 1 of 2)</DialogTitle>
-                <DialogDescription>Enter the amount and the account you sent it from.</DialogDescription>
+                <DialogDescription>Pay using JazzCash or Binance USDT.</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="amount">Amount (PKR)</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    min="0"
-                    placeholder="0.00"
-                    value={form.amount}
-                    onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, method: "jazzcash" }))}
+                    className={`hairline-border rounded-lg p-4 text-left transition-colors ${
+                      form.method === "jazzcash" ? "border-primary bg-secondary/40" : "bg-card"
+                    }`}
+                  >
+                    <p className="text-sm font-medium text-foreground">JazzCash</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Mobile wallet</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, method: "binance" }))}
+                    className={`hairline-border rounded-lg p-4 text-left transition-colors ${
+                      form.method === "binance" ? "border-primary bg-secondary/40" : "bg-card"
+                    }`}
+                  >
+                    <p className="text-sm font-medium text-foreground">Binance USDT</p>
+                    <p className="mt-1 text-xs text-muted-foreground">TRX network</p>
+                  </button>
                 </div>
-                <div className="space-y-2">
-                  <Label>Bank / Wallet</Label>
-                  <Select value={form.bank} onValueChange={(v) => setForm((f) => ({ ...f, bank: v }))}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select the bank or wallet you sent from" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PAKISTAN_BANKS.map((b) => (
-                        <SelectItem key={b} value={b}>
-                          {b}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {form.bank === "Other" && (
-                    <Input
-                      className="mt-2"
-                      placeholder="Enter the name of your bank or wallet"
-                      value={form.otherBank}
-                      onChange={(e) => setForm((f) => ({ ...f, otherBank: e.target.value }))}
-                    />
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="account_title">Account Title</Label>
-                  <Input
-                    id="account_title"
-                    placeholder="Name on the account"
-                    value={form.accountTitle}
-                    onChange={(e) => setForm((f) => ({ ...f, accountTitle: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="account_number">Account Number / IBAN</Label>
-                  <Input
-                    id="account_number"
-                    placeholder="e.g. PK00XXXX0000000000000000 or wallet number"
-                    value={form.accountNumber}
-                    onChange={(e) => setForm((f) => ({ ...f, accountNumber: e.target.value }))}
-                  />
-                </div>
+
+                {form.method === "jazzcash" && (
+                  <div className="hairline-border flex items-center justify-between rounded-lg bg-secondary/40 p-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                        Pay to JazzCash Number
+                      </p>
+                      <p className="font-serif-display mt-1 text-xl text-primary">{JAZZCASH_NUMBER}</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => copy(JAZZCASH_NUMBER, "JazzCash number")}
+                    >
+                      <Copy className="size-4" />
+                    </Button>
+                  </div>
+                )}
+
+                {form.method === "binance" && (
+                  <div className="space-y-3">
+                    <div className="hairline-border rounded-lg bg-secondary/40 p-4">
+                      <p className="text-xs uppercase tracking-widest text-muted-foreground">Network</p>
+                      <p className="mt-1 text-sm text-foreground">{BINANCE_NETWORK}</p>
+                      <p className="mt-3 text-xs uppercase tracking-widest text-muted-foreground">Address</p>
+                      <div className="mt-1 flex items-center justify-between gap-2">
+                        <p className="break-all font-mono text-sm text-primary">{BINANCE_ADDRESS}</p>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="shrink-0"
+                          onClick={() => copy(BINANCE_ADDRESS, "Binance address")}
+                        >
+                          <Copy className="size-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex justify-center">
+                      <Image
+                        src="/media/binance-usdt-deposit.jpg"
+                        alt="Binance USDT deposit QR code"
+                        width={220}
+                        height={280}
+                        className="rounded-lg border border-border"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
               <DialogFooter>
                 <Button className="w-full sm:w-auto" onClick={goToStep2}>
@@ -312,12 +306,12 @@ export default function DepositPage() {
             <>
               <DialogHeader>
                 <DialogTitle>Deposit Funds (Step 2 of 2)</DialogTitle>
-                <DialogDescription>Attach evidence of your transfer.</DialogDescription>
+                <DialogDescription>Share your receipt with our team.</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
                   Send a screenshot of your payment receipt to our WhatsApp number below. Our
-                  team verifies and credits deposits within 24 hours.
+                  team verifies the amount and credits your account.
                 </p>
                 <div className="hairline-border flex items-center justify-between rounded-lg bg-secondary/40 p-4">
                   <div>
@@ -328,25 +322,26 @@ export default function DepositPage() {
                       {whatsapp?.whatsapp_number ?? "..."}
                     </p>
                   </div>
-                  <Button variant="outline" size="icon" onClick={copyWhatsapp}>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => whatsapp && copy(whatsapp.whatsapp_number, "WhatsApp number")}
+                  >
                     <Copy className="size-4" />
                   </Button>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="sender_whatsapp">
-                    Your WhatsApp Number (used to send the receipt)
-                  </Label>
+                  <Label htmlFor="reference">Transaction ID / Reference (optional)</Label>
                   <Input
-                    id="sender_whatsapp"
-                    type="tel"
-                    placeholder="03xx xxxxxxx"
-                    value={form.senderWhatsapp}
-                    onChange={(e) => setForm((f) => ({ ...f, senderWhatsapp: e.target.value }))}
+                    id="reference"
+                    placeholder="e.g. JazzCash TID or Binance TXID"
+                    value={form.reference}
+                    onChange={(e) => setForm((f) => ({ ...f, reference: e.target.value }))}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Once you submit this request, please allow up to 24 hours for our team to
-                  confirm your receipt and approve the deposit.
+                  Once you submit this request, our team confirms your receipt and credits the
+                  amount to your account.
                 </p>
               </div>
               <DialogFooter className="flex-col-reverse gap-2 sm:flex-row">

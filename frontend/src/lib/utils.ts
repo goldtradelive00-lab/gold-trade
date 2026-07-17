@@ -12,9 +12,9 @@ export function getErrorMessage(err: unknown): string {
 }
 
 export function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("en-PK", {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "PKR",
+    currency: "USD",
     minimumFractionDigits: 2,
   }).format(value)
 }
