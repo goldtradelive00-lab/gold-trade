@@ -224,7 +224,7 @@ export default function DepositPage() {
                 <DialogTitle>Deposit Funds (Step 1 of 2)</DialogTitle>
                 <DialogDescription>Pay using JazzCash or Binance USDT.</DialogDescription>
               </DialogHeader>
-              <div className="space-y-4">
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
@@ -288,9 +288,9 @@ export default function DepositPage() {
                       <Image
                         src="/media/binance-usdt-deposit.jpg"
                         alt="Binance USDT deposit QR code"
-                        width={220}
-                        height={280}
-                        className="rounded-lg border border-border"
+                        width={1086}
+                        height={1042}
+                        className="h-auto w-full max-w-[240px] rounded-lg border border-border"
                       />
                     </div>
                   </div>
@@ -308,7 +308,7 @@ export default function DepositPage() {
                 <DialogTitle>Deposit Funds (Step 2 of 2)</DialogTitle>
                 <DialogDescription>Share your receipt with our team.</DialogDescription>
               </DialogHeader>
-              <div className="space-y-4">
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
                 <p className="text-sm text-muted-foreground">
                   Send a screenshot of your payment receipt to our WhatsApp number below. Our
                   team verifies the amount and credits your account.
