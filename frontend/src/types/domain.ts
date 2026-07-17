@@ -10,6 +10,7 @@ export interface SessionUser {
   role: UserRole;
   is_approved: boolean;
   referral_code?: string;
+  goldtrade_id?: string;
 }
 
 export interface Transaction {
@@ -30,6 +31,7 @@ export interface PortfolioOverview {
 
 export interface InvestorSummary {
   id: string;
+  goldtrade_id: string | null;
   email: string;
   full_name: string | null;
   phone_number: string | null;

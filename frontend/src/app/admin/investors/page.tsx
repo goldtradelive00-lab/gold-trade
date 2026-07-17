@@ -129,6 +129,7 @@ export default function AdminInvestorsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
+              <TableHead className="hidden md:table-cell">GoldTrade ID</TableHead>
               <TableHead className="hidden md:table-cell">Email</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="hidden text-right sm:table-cell">Portfolio Value</TableHead>
@@ -142,7 +143,12 @@ export default function AdminInvestorsPage() {
                   <Link href={`/admin/investors/${inv.id}`} className="text-foreground hover:text-primary">
                     {inv.full_name || "N/A"}
                   </Link>
-                  <p className="text-xs text-muted-foreground md:hidden">{inv.email}</p>
+                  <p className="text-xs text-muted-foreground md:hidden">
+                    {inv.goldtrade_id ?? inv.email}
+                  </p>
+                </TableCell>
+                <TableCell className="hidden font-mono text-muted-foreground md:table-cell">
+                  {inv.goldtrade_id ?? "N/A"}
                 </TableCell>
                 <TableCell className="hidden text-muted-foreground md:table-cell">{inv.email}</TableCell>
                 <TableCell>

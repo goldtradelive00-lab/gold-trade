@@ -34,6 +34,7 @@ type RequestStatus = "pending" | "approved" | "rejected";
 interface WithdrawRequestRow {
   id: string;
   customer: string;
+  goldtrade_id: string | null;
   email: string;
   phone_number: string | null;
   amount: number;
@@ -113,7 +114,10 @@ export default function AdminWithdrawalsPage() {
             <TableRow key={r.id}>
               <TableCell>
                 <p className="text-foreground">{r.customer}</p>
-                <p className="text-xs text-muted-foreground">{r.email}</p>
+                <p className="text-xs text-muted-foreground">
+                  {r.goldtrade_id ?? r.email}
+                  {r.goldtrade_id && <span className="ml-1">· {r.email}</span>}
+                </p>
               </TableCell>
               <TableCell className="hidden text-muted-foreground md:table-cell">{r.bank_name}</TableCell>
               <TableCell className="hidden text-muted-foreground md:table-cell">
@@ -198,6 +202,7 @@ export default function AdminWithdrawalsPage() {
           {viewing && (
             <div className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-4">
               <DetailRow label="Investor" value={viewing.customer} />
+              <DetailRow label="GoldTrade ID" value={viewing.goldtrade_id || "N/A"} />
               <DetailRow label="Email" value={viewing.email} />
               <DetailRow label="Phone" value={viewing.phone_number || "N/A"} />
               <DetailRow

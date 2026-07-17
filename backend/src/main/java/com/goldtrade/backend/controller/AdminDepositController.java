@@ -239,6 +239,7 @@ public class AdminDepositController {
         Map<String, Object> map = new java.util.HashMap<>();
         map.put("id", request.getId());
         map.put("customer", investor != null ? investor.getFullName() : "Unknown");
+        map.put("goldtrade_id", investor != null ? investor.getGoldtradeId() : null);
         map.put("email", investor != null ? investor.getEmail() : "");
         map.put("phone_number", investor != null ? investor.getPhoneNumber() : "");
         map.put("amount", request.getAmount());

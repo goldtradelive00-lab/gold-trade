@@ -66,7 +66,13 @@ export default function AdminInvestorDetailPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="font-serif-display text-2xl text-foreground">{investor.full_name || "N/A"}</h1>
-            <p className="text-sm text-muted-foreground">{investor.email}</p>
+            <p className="text-sm text-muted-foreground">
+              {investor.goldtrade_id && (
+                <span className="font-mono text-primary">{investor.goldtrade_id}</span>
+              )}
+              {investor.goldtrade_id && " · "}
+              {investor.email}
+            </p>
           </div>
           {investor.is_approved ? (
             <Badge className="bg-primary text-primary-foreground">Approved</Badge>

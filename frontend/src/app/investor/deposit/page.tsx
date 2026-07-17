@@ -32,11 +32,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const JAZZCASH_NUMBER = "03001234567";
-const BINANCE_NETWORK = "TRX (TRC20)";
-const BINANCE_ADDRESS = "TRGqwZ85XoV1xxqRk1fu6KbhyGX4rG5DnV";
-
 type PaymentMethod = "jazzcash" | "binance";
+
+interface PaymentMethodSettings {
+  jazzcash_number: string;
+  binance_address: string;
+  binance_network: string;
+}
 
 interface DepositRequestRow {
   id: string;
@@ -98,6 +100,10 @@ export default function DepositPage() {
   const { data: whatsapp } = useQuery({
     queryKey: ["settings", "deposit-whatsapp"],
     queryFn: () => api.get<{ whatsapp_number: string }>("/api/settings/deposit-whatsapp"),
+  });
+  const { data: paymentMethods } = useQuery({
+    queryKey: ["settings", "payment-methods"],
+    queryFn: () => api.get<PaymentMethodSettings>("/api/settings/payment-methods"),
   });
 
   const totalDeposited = history
@@ -254,12 +260,16 @@ export default function DepositPage() {
                       <p className="text-xs uppercase tracking-widest text-muted-foreground">
                         Pay to JazzCash Number
                       </p>
-                      <p className="font-serif-display mt-1 text-xl text-primary">{JAZZCASH_NUMBER}</p>
+                      <p className="font-serif-display mt-1 text-xl text-primary">
+                        {paymentMethods?.jazzcash_number ?? "..."}
+                      </p>
                     </div>
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => copy(JAZZCASH_NUMBER, "JazzCash number")}
+                      onClick={() =>
+                        paymentMethods && copy(paymentMethods.jazzcash_number, "JazzCash number")
+                      }
                     >
                       <Copy className="size-4" />
                     </Button>
@@ -270,15 +280,21 @@ export default function DepositPage() {
                   <div className="space-y-3">
                     <div className="hairline-border rounded-lg bg-secondary/40 p-4">
                       <p className="text-xs uppercase tracking-widest text-muted-foreground">Network</p>
-                      <p className="mt-1 text-sm text-foreground">{BINANCE_NETWORK}</p>
+                      <p className="mt-1 text-sm text-foreground">
+                        {paymentMethods?.binance_network ?? "..."}
+                      </p>
                       <p className="mt-3 text-xs uppercase tracking-widest text-muted-foreground">Address</p>
                       <div className="mt-1 flex items-center justify-between gap-2">
-                        <p className="break-all font-mono text-sm text-primary">{BINANCE_ADDRESS}</p>
+                        <p className="break-all font-mono text-sm text-primary">
+                          {paymentMethods?.binance_address ?? "..."}
+                        </p>
                         <Button
                           variant="outline"
                           size="icon"
                           className="shrink-0"
-                          onClick={() => copy(BINANCE_ADDRESS, "Binance address")}
+                          onClick={() =>
+                            paymentMethods && copy(paymentMethods.binance_address, "Binance address")
+                          }
                         >
                           <Copy className="size-4" />
                         </Button>

@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { generateGoldSeries, type GoldPricePoint } from "@/lib/gold-price";
@@ -36,11 +38,19 @@ function CustomTooltip({
 export function GoldPriceChart() {
   const [data, setData] = useState<GoldPricePoint[] | null>(null);
 
-  // Generate on the client after mount to avoid a server/client hydration mismatch
-  // from the randomised data.
+  const { data: goldPriceSetting } = useQuery({
+    queryKey: ["settings", "gold-price"],
+    queryFn: () => api.get<{ price: number }>("/api/settings/gold-price"),
+  });
+
+  // Generate on the client (after the admin-set price loads) to avoid a server/client
+  // hydration mismatch from the randomised data, and so the chart is anchored to
+  // today's admin-configured gold price.
   useEffect(() => {
-    setData(generateGoldSeries(HISTORY_DAYS));
-  }, []);
+    if (goldPriceSetting) {
+      setData(generateGoldSeries(HISTORY_DAYS, goldPriceSetting.price));
+    }
+  }, [goldPriceSetting]);
 
   const chartData = data ?? [];
 

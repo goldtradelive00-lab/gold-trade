@@ -106,6 +106,7 @@ public class AdminInvestorController {
         BigDecimal totalValue = portfolio != null ? portfolio.getCashBalance() : BigDecimal.ZERO;
         Map<String, Object> map = new java.util.HashMap<>();
         map.put("id", customer.getId());
+        map.put("goldtrade_id", customer.getGoldtradeId());
         map.put("email", customer.getEmail());
         map.put("full_name", customer.getFullName());
         map.put("phone_number", customer.getPhoneNumber());

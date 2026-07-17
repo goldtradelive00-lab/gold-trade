@@ -53,6 +53,11 @@ public class User {
     @Column(name = "referral_code", unique = true)
     private String referralCode;
 
+    // Assigned by a DB sequence on insert (see migration) — stable, sequential, and never
+    // reused, so it's a safe human-facing identifier distinct from the internal UUID.
+    @Column(name = "goldtrade_seq", insertable = false, updatable = false)
+    private Integer goldtradeSeq;
+
     @Column(name = "referred_by")
     private String referredBy;
 
@@ -79,5 +84,9 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = OffsetDateTime.now();
+    }
+
+    public String getGoldtradeId() {
+        return goldtradeSeq != null ? String.format("GT-%05d", goldtradeSeq) : null;
     }
 }

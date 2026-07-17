@@ -12,20 +12,54 @@ import { Separator } from "@/components/ui/separator";
 import { ChangePasswordDialog } from "@/components/settings/change-password-dialog";
 import { useAuthStore } from "@/stores/auth-store";
 
+interface PaymentMethods {
+  jazzcash_number: string;
+  binance_address: string;
+  binance_network: string;
+}
+
 export default function AdminSettingsPage() {
   const user = useAuthStore((s) => s.user);
   const queryClient = useQueryClient();
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [savingWhatsapp, setSavingWhatsapp] = useState(false);
 
+  const [jazzcashNumber, setJazzcashNumber] = useState("");
+  const [binanceAddress, setBinanceAddress] = useState("");
+  const [binanceNetwork, setBinanceNetwork] = useState("");
+  const [savingPayment, setSavingPayment] = useState(false);
+
+  const [goldPrice, setGoldPrice] = useState("");
+  const [savingGoldPrice, setSavingGoldPrice] = useState(false);
+
   const { data: whatsapp } = useQuery({
     queryKey: ["settings", "deposit-whatsapp"],
     queryFn: () => api.get<{ whatsapp_number: string }>("/api/settings/deposit-whatsapp"),
+  });
+  const { data: paymentMethods } = useQuery({
+    queryKey: ["settings", "payment-methods"],
+    queryFn: () => api.get<PaymentMethods>("/api/settings/payment-methods"),
+  });
+  const { data: goldPriceSetting } = useQuery({
+    queryKey: ["settings", "gold-price"],
+    queryFn: () => api.get<{ price: number }>("/api/settings/gold-price"),
   });
 
   useEffect(() => {
     if (whatsapp?.whatsapp_number) setWhatsappNumber(whatsapp.whatsapp_number);
   }, [whatsapp]);
+
+  useEffect(() => {
+    if (paymentMethods) {
+      setJazzcashNumber(paymentMethods.jazzcash_number);
+      setBinanceAddress(paymentMethods.binance_address);
+      setBinanceNetwork(paymentMethods.binance_network);
+    }
+  }, [paymentMethods]);
+
+  useEffect(() => {
+    if (goldPriceSetting) setGoldPrice(goldPriceSetting.price.toString());
+  }, [goldPriceSetting]);
 
   const saveWhatsapp = async () => {
     if (!whatsappNumber.trim()) {
@@ -41,6 +75,45 @@ export default function AdminSettingsPage() {
       toast.error(getErrorMessage(err));
     } finally {
       setSavingWhatsapp(false);
+    }
+  };
+
+  const savePaymentMethods = async () => {
+    if (!jazzcashNumber.trim() || !binanceAddress.trim() || !binanceNetwork.trim()) {
+      toast.error("Fill in all payment method fields");
+      return;
+    }
+    setSavingPayment(true);
+    try {
+      await api.put("/api/admin/settings/payment-methods", {
+        jazzcash_number: jazzcashNumber.trim(),
+        binance_address: binanceAddress.trim(),
+        binance_network: binanceNetwork.trim(),
+      });
+      toast.success("Payment methods updated");
+      queryClient.invalidateQueries({ queryKey: ["settings", "payment-methods"] });
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setSavingPayment(false);
+    }
+  };
+
+  const saveGoldPrice = async () => {
+    const value = parseFloat(goldPrice);
+    if (!value || value <= 0) {
+      toast.error("Enter a valid gold price");
+      return;
+    }
+    setSavingGoldPrice(true);
+    try {
+      await api.put("/api/admin/settings/gold-price", { price: value });
+      toast.success("Gold price updated");
+      queryClient.invalidateQueries({ queryKey: ["settings", "gold-price"] });
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setSavingGoldPrice(false);
     }
   };
 
@@ -89,6 +162,76 @@ export default function AdminSettingsPage() {
         <Separator className="my-6" />
         <Button onClick={saveWhatsapp} loading={savingWhatsapp}>
           {savingWhatsapp ? "Saving..." : "Save Changes"}
+        </Button>
+      </div>
+
+      <div className="hairline-border rounded-xl bg-card p-6 md:col-span-2">
+        <h2 className="text-sm uppercase tracking-widest text-muted-foreground">
+          Payment Methods
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Investors see these details on the deposit page: JazzCash number as the 1st method,
+          Binance USDT as the 2nd.
+        </p>
+        <div className="mt-4 grid max-w-2xl gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="jazzcash_number">JazzCash Number</Label>
+            <Input
+              id="jazzcash_number"
+              value={jazzcashNumber}
+              onChange={(e) => setJazzcashNumber(e.target.value)}
+              placeholder="03001234567"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="binance_network">Binance Network</Label>
+            <Input
+              id="binance_network"
+              value={binanceNetwork}
+              onChange={(e) => setBinanceNetwork(e.target.value)}
+              placeholder="TRX (TRC20)"
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="binance_address">Binance Address / ID</Label>
+            <Input
+              id="binance_address"
+              value={binanceAddress}
+              onChange={(e) => setBinanceAddress(e.target.value)}
+              placeholder="TRGqwZ85XoV1xxqRk1fu6KbhyGX4rG5DnV"
+              className="font-mono"
+            />
+          </div>
+        </div>
+        <Separator className="my-6" />
+        <Button onClick={savePaymentMethods} loading={savingPayment}>
+          {savingPayment ? "Saving..." : "Save Changes"}
+        </Button>
+      </div>
+
+      <div className="hairline-border rounded-xl bg-card p-6 md:col-span-2">
+        <h2 className="text-sm uppercase tracking-widest text-muted-foreground">
+          Today&apos;s Gold Price
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Sets the current gold rate (USD per troy ounce, 24K) shown on the investor dashboard.
+          The dashboard chart's trend is generated around this value.
+        </p>
+        <div className="mt-4 max-w-xs space-y-2">
+          <Label htmlFor="gold_price">Gold Price (USD / oz)</Label>
+          <Input
+            id="gold_price"
+            type="number"
+            min="0"
+            step="0.01"
+            value={goldPrice}
+            onChange={(e) => setGoldPrice(e.target.value)}
+            placeholder="2650.00"
+          />
+        </div>
+        <Separator className="my-6" />
+        <Button onClick={saveGoldPrice} loading={savingGoldPrice}>
+          {savingGoldPrice ? "Saving..." : "Save Changes"}
         </Button>
       </div>
     </div>

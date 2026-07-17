@@ -164,6 +164,7 @@ public class AdminWithdrawalController {
         Map<String, Object> map = new java.util.HashMap<>();
         map.put("id", request.getId());
         map.put("customer", customer != null ? customer.getFullName() : "Unknown");
+        map.put("goldtrade_id", customer != null ? customer.getGoldtradeId() : null);
         map.put("email", customer != null ? customer.getEmail() : "");
         map.put("phone_number", customer != null ? customer.getPhoneNumber() : "");
         map.put("amount", request.getAmount());

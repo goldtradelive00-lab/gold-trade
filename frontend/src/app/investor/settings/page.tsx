@@ -60,6 +60,12 @@ export default function InvestorSettingsPage() {
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" defaultValue={user?.email ?? ""} disabled />
           </div>
+          {user?.goldtrade_id && (
+            <div className="space-y-2">
+              <Label htmlFor="goldtrade_id">GoldTrade ID</Label>
+              <Input id="goldtrade_id" value={user.goldtrade_id} disabled className="font-mono" />
+            </div>
+          )}
           <Button onClick={saveProfile} loading={saving}>
             {saving ? "Saving..." : "Save Changes"}
           </Button>

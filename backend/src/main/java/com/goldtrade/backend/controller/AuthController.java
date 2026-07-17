@@ -137,7 +137,8 @@ public class AuthController {
                 "full_name", user.getFullName() != null ? user.getFullName() : "",
                 "role", "investor",
                 "is_approved", user.getIsApproved(),
-                "referral_code", user.getReferralCode() != null ? user.getReferralCode() : ""
+                "referral_code", user.getReferralCode() != null ? user.getReferralCode() : "",
+                "goldtrade_id", user.getGoldtradeId() != null ? user.getGoldtradeId() : ""
         )));
     }
 
