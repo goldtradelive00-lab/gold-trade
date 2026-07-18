@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bell } from "lucide-react";
+import { Bell, X } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { getErrorMessage } from "@/lib/utils";
@@ -29,6 +29,7 @@ interface NotificationRow {
 
 export function NotificationBell() {
   const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
   const { data: notifications } = useQuery({
     queryKey: ["notifications"],
     queryFn: () => api.get<NotificationRow[]>("/api/notifications"),
@@ -77,8 +78,9 @@ export function NotificationBell() {
     }
   };
 
-  const handleOpenChange = async (open: boolean) => {
-    if (!open || unreadCount === 0) return;
+  const handleOpenChange = async (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (!nextOpen || unreadCount === 0) return;
     try {
       await api.post("/api/notifications/mark-all-read");
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
@@ -89,7 +91,7 @@ export function NotificationBell() {
   };
 
   return (
-    <DropdownMenu onOpenChange={handleOpenChange}>
+    <DropdownMenu open={open} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
         <button
           className="relative flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground"
@@ -104,14 +106,23 @@ export function NotificationBell() {
       <DropdownMenuContent align="end" className="w-80">
         <div className="flex items-center justify-between px-2 py-1.5">
           <DropdownMenuLabel className="p-0">Notifications</DropdownMenuLabel>
-          {list.length > 0 && (
+          <div className="flex items-center gap-3">
+            {list.length > 0 && (
+              <button
+                onClick={clearAll}
+                className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Clear all
+              </button>
+            )}
             <button
-              onClick={clearAll}
-              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+              onClick={() => setOpen(false)}
+              aria-label="Close notifications"
+              className="text-muted-foreground transition-colors hover:text-foreground"
             >
-              Clear all
+              <X className="size-4" />
             </button>
-          )}
+          </div>
         </div>
         <DropdownMenuSeparator />
         {list.length === 0 ? (
