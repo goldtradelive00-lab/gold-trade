@@ -7,7 +7,6 @@ import { RefreshCw } from "lucide-react";
 import { api } from "@/lib/api";
 import { formatCurrency, getErrorMessage } from "@/lib/utils";
 import type { PortfolioOverview } from "@/types/domain";
-import { PAKISTAN_BANKS } from "@/lib/pakistan-banks";
 import { useMarkSectionRead } from "@/lib/use-mark-section-read";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,13 +23,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -39,7 +31,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-type PayoutMethod = "bank_transfer" | "jazzcash" | "binance";
+type PayoutMethod = "jazzcash" | "binance";
 
 interface WithdrawRequestRow {
   id: string;
@@ -57,17 +49,13 @@ const STATUS_BADGE: Record<WithdrawRequestRow["status"], string> = {
 };
 
 const METHOD_LABEL: Record<PayoutMethod, string> = {
-  bank_transfer: "Bank Transfer",
   jazzcash: "JazzCash",
   binance: "Binance USDT",
 };
 
 const emptyForm = {
-  method: "bank_transfer" as PayoutMethod,
+  method: "jazzcash" as PayoutMethod,
   amount: "",
-  bank: "",
-  otherBank: "",
-  accountTitle: "",
   accountNumber: "",
 };
 
@@ -126,37 +114,18 @@ export default function WithdrawPage() {
       return;
     }
 
-    const payload: Record<string, unknown> = { amount: value, method: form.method };
-
-    if (form.method === "bank_transfer") {
-      if (!form.bank) {
-        toast.error("Select a bank or wallet");
-        return;
-      }
-      if (form.bank === "Other" && !form.otherBank.trim()) {
-        toast.error("Enter the name of your bank or wallet");
-        return;
-      }
-      if (!form.accountTitle.trim()) {
-        toast.error("Enter the account title");
-        return;
-      }
-      if (!form.accountNumber.trim()) {
-        toast.error("Enter the account number or IBAN");
-        return;
-      }
-      payload.bank_name = form.bank === "Other" ? form.otherBank.trim() : form.bank;
-      payload.account_title = form.accountTitle;
-      payload.account_number = form.accountNumber;
-    } else {
-      if (!form.accountNumber.trim()) {
-        toast.error(
-          form.method === "jazzcash" ? "Enter your JazzCash number" : "Enter your Binance address"
-        );
-        return;
-      }
-      payload.account_number = form.accountNumber;
+    if (!form.accountNumber.trim()) {
+      toast.error(
+        form.method === "jazzcash" ? "Enter your JazzCash number" : "Enter your Binance address"
+      );
+      return;
     }
+
+    const payload: Record<string, unknown> = {
+      amount: value,
+      method: form.method,
+      account_number: form.accountNumber,
+    };
 
     setSubmitting(true);
     try {
@@ -279,8 +248,8 @@ export default function WithdrawPage() {
 
             <div className="space-y-2">
               <Label>Payout Method</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {(["bank_transfer", "jazzcash", "binance"] as PayoutMethod[]).map((m) => (
+              <div className="grid grid-cols-2 gap-2">
+                {(["jazzcash", "binance"] as PayoutMethod[]).map((m) => (
                   <button
                     key={m}
                     type="button"
@@ -295,64 +264,18 @@ export default function WithdrawPage() {
               </div>
             </div>
 
-            {form.method === "bank_transfer" ? (
-              <>
-                <div className="space-y-2">
-                  <Label>Bank / Wallet</Label>
-                  <Select value={form.bank} onValueChange={(v) => setForm((f) => ({ ...f, bank: v }))}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select the bank or wallet to receive funds" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PAKISTAN_BANKS.map((b) => (
-                        <SelectItem key={b} value={b}>
-                          {b}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {form.bank === "Other" && (
-                    <Input
-                      className="mt-2"
-                      placeholder="Enter the name of your bank or wallet"
-                      value={form.otherBank}
-                      onChange={(e) => setForm((f) => ({ ...f, otherBank: e.target.value }))}
-                    />
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="account_title">Account Title</Label>
-                  <Input
-                    id="account_title"
-                    placeholder="Name on the account"
-                    value={form.accountTitle}
-                    onChange={(e) => setForm((f) => ({ ...f, accountTitle: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="account_number">Account Number / IBAN</Label>
-                  <Input
-                    id="account_number"
-                    placeholder="e.g. PK00XXXX0000000000000000 or wallet number"
-                    value={form.accountNumber}
-                    onChange={(e) => setForm((f) => ({ ...f, accountNumber: e.target.value }))}
-                  />
-                </div>
-              </>
-            ) : (
-              <div className="space-y-2">
-                <Label htmlFor="account_number">
-                  {form.method === "jazzcash" ? "JazzCash Number" : "Binance Address (TRX network)"}
-                </Label>
-                <Input
-                  id="account_number"
-                  placeholder={form.method === "jazzcash" ? "03xx xxxxxxx" : "T..."}
-                  value={form.accountNumber}
-                  onChange={(e) => setForm((f) => ({ ...f, accountNumber: e.target.value }))}
-                  className={form.method === "binance" ? "font-mono" : undefined}
-                />
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label htmlFor="account_number">
+                {form.method === "jazzcash" ? "JazzCash Number" : "Binance Address (TRX network)"}
+              </Label>
+              <Input
+                id="account_number"
+                placeholder={form.method === "jazzcash" ? "03xx xxxxxxx" : "T..."}
+                value={form.accountNumber}
+                onChange={(e) => setForm((f) => ({ ...f, accountNumber: e.target.value }))}
+                className={form.method === "binance" ? "font-mono" : undefined}
+              />
+            </div>
 
             <p className="text-xs text-muted-foreground">
               Funds are sent to the account details above once approved.

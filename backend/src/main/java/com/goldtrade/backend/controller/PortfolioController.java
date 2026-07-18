@@ -177,13 +177,13 @@ public class PortfolioController {
     }
 
     // POST /api/portfolio/withdrawals — submits a request for admin review. Payout method is
-    // bank_transfer, jazzcash, or binance; each needs different destination details.
+    // jazzcash or binance; each needs a different destination detail.
     @PostMapping("/withdrawals")
     public ResponseEntity<ApiResponse<?>> requestWithdrawal(@RequestBody Map<String, Object> body, Authentication auth) {
         String userId = (String) auth.getPrincipal();
         BigDecimal amount = toAmount(body.get("amount"));
         String method = requireText(body.get("method"), "Select a payout method");
-        if (!method.equals("bank_transfer") && !method.equals("jazzcash") && !method.equals("binance")) {
+        if (!method.equals("jazzcash") && !method.equals("binance")) {
             throw new BadRequestException("Select a valid payout method");
         }
 
@@ -198,11 +198,7 @@ public class PortfolioController {
         request.setAmount(amount);
         request.setMethod(method);
 
-        if (method.equals("bank_transfer")) {
-            request.setBankName(requireText(body.get("bank_name"), "Select a bank or wallet"));
-            request.setAccountTitle(requireText(body.get("account_title"), "Enter the account title"));
-            request.setAccountNumber(requireText(body.get("account_number"), "Enter the account number or IBAN"));
-        } else if (method.equals("jazzcash")) {
+        if (method.equals("jazzcash")) {
             request.setBankName("JazzCash");
             request.setAccountNumber(requireText(body.get("account_number"), "Enter your JazzCash number"));
         } else {
