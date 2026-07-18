@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
 import { toast } from "sonner";
@@ -29,7 +29,6 @@ interface NotificationRow {
 
 export function NotificationBell() {
   const queryClient = useQueryClient();
-  const [clearing, setClearing] = useState(false);
   const { data: notifications } = useQuery({
     queryKey: ["notifications"],
     queryFn: () => api.get<NotificationRow[]>("/api/notifications"),
@@ -62,15 +61,19 @@ export function NotificationBell() {
   }, [notifications]);
 
   const clearAll = async () => {
-    setClearing(true);
+    const previousNotifications = queryClient.getQueryData<NotificationRow[]>(["notifications"]);
+    const previousUnread = queryClient.getQueryData<{ count: number }>(["notifications", "unread-count"]);
+
+    // Clear instantly rather than waiting on the round trip; roll back only if it fails.
+    queryClient.setQueryData(["notifications"], []);
+    queryClient.setQueryData(["notifications", "unread-count"], { count: 0 });
+
     try {
       await api.delete("/api/notifications");
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
     } catch (err) {
+      queryClient.setQueryData(["notifications"], previousNotifications);
+      queryClient.setQueryData(["notifications", "unread-count"], previousUnread);
       toast.error(getErrorMessage(err));
-    } finally {
-      setClearing(false);
     }
   };
 
@@ -104,10 +107,9 @@ export function NotificationBell() {
           {list.length > 0 && (
             <button
               onClick={clearAll}
-              disabled={clearing}
-              className="text-xs text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
             >
-              {clearing ? "Clearing..." : "Clear all"}
+              Clear all
             </button>
           )}
         </div>
