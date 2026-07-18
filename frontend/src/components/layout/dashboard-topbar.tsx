@@ -66,6 +66,15 @@ export function DashboardTopbar({
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
+            {user?.goldtrade_id && (
+              <>
+                <div className="px-2 py-1.5">
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">GoldTrade ID</p>
+                  <p className="font-mono text-sm text-foreground">{user.goldtrade_id}</p>
+                </div>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem asChild>
               <Link href={settingsHref} className="flex items-center gap-2">
                 <Settings className="size-4" />

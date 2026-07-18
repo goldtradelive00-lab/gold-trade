@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Copy, RefreshCw } from "lucide-react";
@@ -277,37 +276,26 @@ export default function DepositPage() {
                 )}
 
                 {form.method === "binance" && (
-                  <div className="space-y-3">
-                    <div className="hairline-border rounded-lg bg-secondary/40 p-4">
-                      <p className="text-xs uppercase tracking-widest text-muted-foreground">Network</p>
-                      <p className="mt-1 text-sm text-foreground">
-                        {paymentMethods?.binance_network ?? "..."}
+                  <div className="hairline-border rounded-lg bg-secondary/40 p-4">
+                    <p className="text-xs uppercase tracking-widest text-muted-foreground">Network</p>
+                    <p className="mt-1 text-sm text-foreground">
+                      {paymentMethods?.binance_network ?? "..."}
+                    </p>
+                    <p className="mt-3 text-xs uppercase tracking-widest text-muted-foreground">Address</p>
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <p className="break-all font-mono text-sm text-primary">
+                        {paymentMethods?.binance_address ?? "..."}
                       </p>
-                      <p className="mt-3 text-xs uppercase tracking-widest text-muted-foreground">Address</p>
-                      <div className="mt-1 flex items-center justify-between gap-2">
-                        <p className="break-all font-mono text-sm text-primary">
-                          {paymentMethods?.binance_address ?? "..."}
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="shrink-0"
-                          onClick={() =>
-                            paymentMethods && copy(paymentMethods.binance_address, "Binance address")
-                          }
-                        >
-                          <Copy className="size-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="flex justify-center">
-                      <Image
-                        src="/media/binance-usdt-deposit.jpg"
-                        alt="Binance USDT deposit QR code"
-                        width={1086}
-                        height={1042}
-                        className="h-auto w-full max-w-[240px] rounded-lg border border-border"
-                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="shrink-0"
+                        onClick={() =>
+                          paymentMethods && copy(paymentMethods.binance_address, "Binance address")
+                        }
+                      >
+                        <Copy className="size-4" />
+                      </Button>
                     </div>
                   </div>
                 )}
