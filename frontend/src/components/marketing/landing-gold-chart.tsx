@@ -9,8 +9,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
 // Shown before data arrives so the hero card always renders a clean, on-brand graph
 // rather than an empty box.
-const FALLBACK_PRICE = 2650;
-const FALLBACK_SERIES = [2610, 2625, 2618, 2632, 2627, 2641, 2635, 2650].map((price, i) => ({
+const FALLBACK_PRICE = 1506.3;
+const FALLBACK_SERIES = [1520, 1512, 1517, 1508, 1513, 1498, 1489.85, 1506.3].map((price, i) => ({
   date: `f${i}`,
   price,
 }));

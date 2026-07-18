@@ -215,12 +215,12 @@ export default function AdminSettingsPage() {
           Today&apos;s Gold Price
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Sets today&apos;s gold rate (USD per troy ounce, 24K), shown on both the public
+          Sets today&apos;s gold rate (USD per tola, 24K), shown on both the public
           landing page and the investor dashboard chart. Once set, it&apos;s stored — the
           same price shows everywhere until you update it again.
         </p>
         <div className="mt-4 max-w-xs space-y-2">
-          <Label htmlFor="gold_price">Gold Price (USD / oz)</Label>
+          <Label htmlFor="gold_price">Gold Price (USD / Tola)</Label>
           <Input
             id="gold_price"
             type="number"
@@ -228,7 +228,7 @@ export default function AdminSettingsPage() {
             step="0.01"
             value={goldPrice}
             onChange={(e) => setGoldPrice(e.target.value)}
-            placeholder="2650.00"
+            placeholder="1506.30"
           />
         </div>
         <Separator className="my-6" />

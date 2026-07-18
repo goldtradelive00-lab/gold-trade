@@ -39,7 +39,7 @@ function CustomTooltip({
   if (!active || !payload?.length) return null;
   return (
     <div className="hairline-border rounded-md bg-card px-3 py-2 text-xs shadow-lg">
-      <p className="text-muted-foreground">{formatDateLabel(payload[0].payload.date)} · Per oz (24K)</p>
+      <p className="text-muted-foreground">{formatDateLabel(payload[0].payload.date)} · Per Tola (24K)</p>
       <p className="font-serif-display mt-0.5 text-primary">{formatCurrency(payload[0].value)}</p>
     </div>
   );
@@ -84,7 +84,7 @@ export function GoldPriceChart() {
     return (
       <div className="hairline-border gold-glow rounded-xl bg-card p-6">
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground">
-          Gold Rate · 24K / oz (USD)
+          Gold Rate · 24K / Tola (USD)
         </h2>
         <Skeleton className="mt-4 h-64 w-full" />
       </div>
@@ -96,7 +96,7 @@ export function GoldPriceChart() {
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-xs uppercase tracking-widest text-muted-foreground">
-            Gold Rate · 24K / oz (USD)
+            Gold Rate · 24K / Tola (USD)
           </h2>
           <p className="font-serif-display mt-3 text-3xl text-primary">{formatCurrency(current)}</p>
         </div>

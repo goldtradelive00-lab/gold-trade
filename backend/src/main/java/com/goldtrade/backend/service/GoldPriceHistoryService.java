@@ -18,10 +18,10 @@ import java.util.Random;
 @Service
 public class GoldPriceHistoryService {
 
-    private static final BigDecimal DEFAULT_PRICE = new BigDecimal("2650.00");
+    private static final BigDecimal DEFAULT_PRICE = new BigDecimal("1500.00");
     // Bounded random walk step so backfilled/auto-generated days stay in a believable range
     // around whatever the real (admin-set or default) anchor price is.
-    private static final double MAX_DAILY_STEP = 24.0;
+    private static final double MAX_DAILY_STEP = 15.0;
 
     private final GoldPriceHistoryRepository historyRepo;
     private final Random random = new Random();

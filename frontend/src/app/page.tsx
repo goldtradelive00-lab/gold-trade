@@ -50,7 +50,7 @@ export default function LandingPage() {
 
           <div className="hairline-border rounded-xl bg-card p-6">
             <p className="text-xs uppercase tracking-widest text-muted-foreground">
-              Gold Rate · 24K / oz (USD)
+              Gold Rate · 24K / Tola (USD)
             </p>
             <div className="mt-2">
               <LandingGoldChart />

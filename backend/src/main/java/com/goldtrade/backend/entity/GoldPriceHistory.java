@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
-// One row per calendar day (USD per troy ounce, 24K). Today's row is either set explicitly
+// One row per calendar day (USD per tola, 24K). Today's row is either set explicitly
 // by an admin or auto-generated on first read of the day; once written, a day's price is
 // stable — the landing page and dashboard charts read this table directly rather than
 // regenerating anything client-side.
