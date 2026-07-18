@@ -15,8 +15,6 @@ public class SettingsController {
     private static final String DEPOSIT_WHATSAPP_KEY = "deposit_whatsapp_number";
     private static final String DEPOSIT_WHATSAPP_DEFAULT = "03001234567";
 
-    private static final String JAZZCASH_NUMBER_KEY = "jazzcash_number";
-    private static final String JAZZCASH_NUMBER_DEFAULT = "03001234567";
     private static final String BINANCE_ADDRESS_KEY = "binance_address";
     private static final String BINANCE_ADDRESS_DEFAULT = "TRGqwZ85XoV1xxqRk1fu6KbhyGX4rG5DnV";
     private static final String BINANCE_NETWORK_KEY = "binance_network";
@@ -60,7 +58,6 @@ public class SettingsController {
     @GetMapping("/api/settings/payment-methods")
     public ResponseEntity<ApiResponse<?>> getPaymentMethods() {
         return ResponseEntity.ok(ApiResponse.success(Map.of(
-                "jazzcash_number", getSetting(JAZZCASH_NUMBER_KEY, JAZZCASH_NUMBER_DEFAULT),
                 "binance_address", getSetting(BINANCE_ADDRESS_KEY, BINANCE_ADDRESS_DEFAULT),
                 "binance_network", getSetting(BINANCE_NETWORK_KEY, BINANCE_NETWORK_DEFAULT)
         )));
@@ -69,23 +66,17 @@ public class SettingsController {
     // PUT /api/admin/settings/payment-methods — admin only
     @PutMapping("/api/admin/settings/payment-methods")
     public ResponseEntity<ApiResponse<?>> updatePaymentMethods(@RequestBody Map<String, String> body) {
-        String jazzcash = body.getOrDefault("jazzcash_number", "").trim();
         String address = body.getOrDefault("binance_address", "").trim();
         String network = body.getOrDefault("binance_network", "").trim();
-        if (jazzcash.isEmpty()) {
-            throw new BadRequestException("Enter a valid JazzCash number");
-        }
         if (address.isEmpty()) {
             throw new BadRequestException("Enter a valid Binance address");
         }
         if (network.isEmpty()) {
             throw new BadRequestException("Enter a valid network label");
         }
-        putSetting(JAZZCASH_NUMBER_KEY, jazzcash);
         putSetting(BINANCE_ADDRESS_KEY, address);
         putSetting(BINANCE_NETWORK_KEY, network);
         return ResponseEntity.ok(ApiResponse.success(Map.of(
-                "jazzcash_number", jazzcash,
                 "binance_address", address,
                 "binance_network", network
         ), "Payment methods updated"));

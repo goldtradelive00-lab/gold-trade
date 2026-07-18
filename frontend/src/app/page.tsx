@@ -35,7 +35,7 @@ export default function LandingPage() {
               <span className="text-primary">Backed by Gold</span>
             </h1>
             <p className="mt-6 max-w-md text-muted-foreground">
-              Deposit via JazzCash or Binance USDT, earn 1% profit on your principal every day,
+              Deposit via Binance USDT, earn 1% profit on your principal every day,
               and track every dollar in one simple dashboard.
             </p>
             <div className="mt-8 flex gap-4">
@@ -84,7 +84,7 @@ export default function LandingPage() {
               <ShieldCheck className="size-4 text-primary" /> Every Deposit Manually Verified
             </span>
             <span className="flex items-center gap-2">
-              <Wallet className="size-4 text-primary" /> JazzCash &amp; Binance USDT Accepted
+              <Wallet className="size-4 text-primary" /> Binance USDT Accepted
             </span>
             <span className="flex items-center gap-2">
               <Lock className="size-4 text-primary" /> Encrypted Account Access
@@ -102,7 +102,7 @@ export default function LandingPage() {
             <FeatureCard
               icon={<Wallet className="size-5 text-primary" />}
               title="Deposit Your Way"
-              body="Pay via JazzCash or Binance USDT, then confirm your receipt over WhatsApp."
+              body="Pay via Binance USDT, then confirm your receipt over WhatsApp."
             />
             <FeatureCard
               icon={<TrendingUp className="size-5 text-primary" />}
@@ -129,7 +129,7 @@ export default function LandingPage() {
           <div className="relative mx-auto max-w-2xl px-6 text-center">
             <p className="font-serif-display text-5xl text-primary/40">&rdquo;</p>
             <blockquote className="font-serif-display text-xl italic leading-relaxed text-foreground md:text-2xl">
-              I deposited through JazzCash, confirmed my receipt on WhatsApp, and my profit
+              I deposited through Binance USDT, confirmed my receipt on WhatsApp, and my profit
               started showing up the very next day. Referring two friends made it even better:
               their deposits earn me a bonus too.
             </blockquote>

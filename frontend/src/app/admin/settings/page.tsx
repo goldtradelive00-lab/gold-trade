@@ -13,7 +13,6 @@ import { ChangePasswordDialog } from "@/components/settings/change-password-dial
 import { useAuthStore } from "@/stores/auth-store";
 
 interface PaymentMethods {
-  jazzcash_number: string;
   binance_address: string;
   binance_network: string;
 }
@@ -24,7 +23,6 @@ export default function AdminSettingsPage() {
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [savingWhatsapp, setSavingWhatsapp] = useState(false);
 
-  const [jazzcashNumber, setJazzcashNumber] = useState("");
   const [binanceAddress, setBinanceAddress] = useState("");
   const [binanceNetwork, setBinanceNetwork] = useState("");
   const [savingPayment, setSavingPayment] = useState(false);
@@ -51,7 +49,6 @@ export default function AdminSettingsPage() {
 
   useEffect(() => {
     if (paymentMethods) {
-      setJazzcashNumber(paymentMethods.jazzcash_number);
       setBinanceAddress(paymentMethods.binance_address);
       setBinanceNetwork(paymentMethods.binance_network);
     }
@@ -79,14 +76,13 @@ export default function AdminSettingsPage() {
   };
 
   const savePaymentMethods = async () => {
-    if (!jazzcashNumber.trim() || !binanceAddress.trim() || !binanceNetwork.trim()) {
+    if (!binanceAddress.trim() || !binanceNetwork.trim()) {
       toast.error("Fill in all payment method fields");
       return;
     }
     setSavingPayment(true);
     try {
       await api.put("/api/admin/settings/payment-methods", {
-        jazzcash_number: jazzcashNumber.trim(),
         binance_address: binanceAddress.trim(),
         binance_network: binanceNetwork.trim(),
       });
@@ -171,19 +167,9 @@ export default function AdminSettingsPage() {
           Payment Methods
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Investors see these details on the deposit page: JazzCash number as the 1st method,
-          Binance USDT as the 2nd.
+          Investors see these details on the deposit page as the only payment method.
         </p>
         <div className="mt-4 grid max-w-2xl gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="jazzcash_number">JazzCash Number</Label>
-            <Input
-              id="jazzcash_number"
-              value={jazzcashNumber}
-              onChange={(e) => setJazzcashNumber(e.target.value)}
-              placeholder="03001234567"
-            />
-          </div>
           <div className="space-y-2">
             <Label htmlFor="binance_network">Binance Network</Label>
             <Input

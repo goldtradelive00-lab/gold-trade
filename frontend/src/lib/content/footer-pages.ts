@@ -28,7 +28,7 @@ export const howItWorksPage: FooterPage = {
     {
       heading: "2. Make a Deposit",
       paragraphs: [
-        "From your dashboard, submit a deposit request, choosing JazzCash or Binance USDT as your payment method. Confirm your payment receipt over WhatsApp so our team can match it to your request.",
+        "From your dashboard, submit a deposit request, paying via Binance USDT. Confirm your payment receipt over WhatsApp so our team can match it to your request.",
         "Our team manually verifies every receipt before crediting an account, which typically takes up to 24 hours. Once approved, the amount is added to both your cash balance and your principal balance.",
       ],
     },
@@ -275,7 +275,7 @@ export const companyPages: Record<string, FooterPage> = {
       {
         heading: "What We Collect",
         paragraphs: [
-          "When you open an account, we collect your full name, email address, and phone number. When you submit a deposit request, we collect the payment method you used (JazzCash or Binance USDT) and, if you provide one, a transaction reference. When you submit a withdrawal request, we collect the bank or mobile wallet account details needed to send the funds.",
+          "When you open an account, we collect your full name, email address, and phone number. When you submit a deposit request, we collect the payment method you used (Binance USDT) and, if you provide one, a transaction reference. When you submit a withdrawal request, we collect the bank or mobile wallet account details needed to send the funds.",
         ],
       },
       {
@@ -313,7 +313,7 @@ export const legalPages: Record<string, FooterPage> = {
       {
         heading: "The Platform",
         paragraphs: [
-          "GoldTrade is a deposit, daily-profit, and referral-bonus platform. Deposits are made via JazzCash or Binance USDT and are credited to your account only after manual verification against the payment receipt you provide. Withdrawals are processed to the bank or wallet account you specify, after manual admin review. Daily profit (currently 1% of your deposited principal per day) and referral bonuses (currently 5% of a referred member's approved deposit) are set by GoldTrade and may be changed, paused, or discontinued at any time without prior notice.",
+          "GoldTrade is a deposit, daily-profit, and referral-bonus platform. Deposits are made via Binance USDT and are credited to your account only after manual verification against the payment receipt you provide. Withdrawals are processed to the bank or wallet account you specify, after manual admin review. Daily profit (currently 1% of your deposited principal per day) and referral bonuses (currently 5% of a referred member's approved deposit) are set by GoldTrade and may be changed, paused, or discontinued at any time without prior notice.",
         ],
       },
       {

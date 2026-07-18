@@ -31,10 +31,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+// "jazzcash" is kept only so historical deposit requests made before JazzCash was removed
+// as a deposit option still render a correct label in the history table below.
 type PaymentMethod = "jazzcash" | "binance";
 
 interface PaymentMethodSettings {
-  jazzcash_number: string;
   binance_address: string;
   binance_network: string;
 }
@@ -60,7 +61,6 @@ const METHOD_LABEL: Record<PaymentMethod, string> = {
 };
 
 const emptyForm = {
-  method: "" as PaymentMethod | "",
   reference: "",
 };
 
@@ -115,13 +115,7 @@ export default function DepositPage() {
     setForm(emptyForm);
   };
 
-  const goToStep2 = () => {
-    if (!form.method) {
-      toast.error("Choose how you paid");
-      return;
-    }
-    setStep(2);
-  };
+  const goToStep2 = () => setStep(2);
 
   const copy = async (value: string, label: string) => {
     await navigator.clipboard.writeText(value);
@@ -132,7 +126,7 @@ export default function DepositPage() {
     setSubmitting(true);
     try {
       await api.post("/api/portfolio/deposit-requests", {
-        payment_method: form.method,
+        payment_method: "binance",
         transaction_reference: form.reference.trim() || undefined,
       });
       toast.success("Deposit request submitted. Our team will confirm your receipt shortly.");
@@ -227,78 +221,31 @@ export default function DepositPage() {
             <>
               <DialogHeader>
                 <DialogTitle>Deposit Funds (Step 1 of 2)</DialogTitle>
-                <DialogDescription>Pay using JazzCash or Binance USDT.</DialogDescription>
+                <DialogDescription>Pay using Binance USDT.</DialogDescription>
               </DialogHeader>
               <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setForm((f) => ({ ...f, method: "jazzcash" }))}
-                    className={`hairline-border rounded-lg p-4 text-left transition-colors ${
-                      form.method === "jazzcash" ? "border-primary bg-secondary/40" : "bg-card"
-                    }`}
-                  >
-                    <p className="text-sm font-medium text-foreground">JazzCash</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Mobile wallet</p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setForm((f) => ({ ...f, method: "binance" }))}
-                    className={`hairline-border rounded-lg p-4 text-left transition-colors ${
-                      form.method === "binance" ? "border-primary bg-secondary/40" : "bg-card"
-                    }`}
-                  >
-                    <p className="text-sm font-medium text-foreground">Binance USDT</p>
-                    <p className="mt-1 text-xs text-muted-foreground">TRX network</p>
-                  </button>
-                </div>
-
-                {form.method === "jazzcash" && (
-                  <div className="hairline-border flex items-center justify-between rounded-lg bg-secondary/40 p-4">
-                    <div>
-                      <p className="text-xs uppercase tracking-widest text-muted-foreground">
-                        Pay to JazzCash Number
-                      </p>
-                      <p className="font-serif-display mt-1 text-xl text-primary">
-                        {paymentMethods?.jazzcash_number ?? "..."}
-                      </p>
-                    </div>
+                <div className="hairline-border rounded-lg bg-secondary/40 p-4">
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground">Network</p>
+                  <p className="mt-1 text-sm text-foreground">
+                    {paymentMethods?.binance_network ?? "..."}
+                  </p>
+                  <p className="mt-3 text-xs uppercase tracking-widest text-muted-foreground">Address</p>
+                  <div className="mt-1 flex items-center justify-between gap-2">
+                    <p className="break-all font-mono text-sm text-primary">
+                      {paymentMethods?.binance_address ?? "..."}
+                    </p>
                     <Button
                       variant="outline"
                       size="icon"
+                      className="shrink-0"
                       onClick={() =>
-                        paymentMethods && copy(paymentMethods.jazzcash_number, "JazzCash number")
+                        paymentMethods && copy(paymentMethods.binance_address, "Binance address")
                       }
                     >
                       <Copy className="size-4" />
                     </Button>
                   </div>
-                )}
-
-                {form.method === "binance" && (
-                  <div className="hairline-border rounded-lg bg-secondary/40 p-4">
-                    <p className="text-xs uppercase tracking-widest text-muted-foreground">Network</p>
-                    <p className="mt-1 text-sm text-foreground">
-                      {paymentMethods?.binance_network ?? "..."}
-                    </p>
-                    <p className="mt-3 text-xs uppercase tracking-widest text-muted-foreground">Address</p>
-                    <div className="mt-1 flex items-center justify-between gap-2">
-                      <p className="break-all font-mono text-sm text-primary">
-                        {paymentMethods?.binance_address ?? "..."}
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="shrink-0"
-                        onClick={() =>
-                          paymentMethods && copy(paymentMethods.binance_address, "Binance address")
-                        }
-                      >
-                        <Copy className="size-4" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                </div>
               </div>
               <DialogFooter>
                 <Button className="w-full sm:w-auto" onClick={goToStep2}>
@@ -338,7 +285,7 @@ export default function DepositPage() {
                   <Label htmlFor="reference">Transaction ID / Reference (optional)</Label>
                   <Input
                     id="reference"
-                    placeholder="e.g. JazzCash TID or Binance TXID"
+                    placeholder="e.g. Binance TXID"
                     value={form.reference}
                     onChange={(e) => setForm((f) => ({ ...f, reference: e.target.value }))}
                   />

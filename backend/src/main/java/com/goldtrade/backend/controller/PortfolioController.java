@@ -96,13 +96,13 @@ public class PortfolioController {
     }
 
     // POST /api/portfolio/deposit-requests — submits a request for admin review once the
-    // investor has paid via JazzCash or Binance and sent a receipt via WhatsApp; the amount
-    // is set by the admin from the receipt at approval time, not by the investor here
+    // investor has paid via Binance and sent a receipt via WhatsApp; the amount is set by
+    // the admin from the receipt at approval time, not by the investor here
     @PostMapping("/deposit-requests")
     public ResponseEntity<ApiResponse<?>> requestDeposit(@RequestBody Map<String, Object> body, Authentication auth) {
         String userId = (String) auth.getPrincipal();
         String paymentMethod = requireText(body.get("payment_method"), "Select a payment method");
-        if (!"jazzcash".equals(paymentMethod) && !"binance".equals(paymentMethod)) {
+        if (!"binance".equals(paymentMethod)) {
             throw new BadRequestException("Select a valid payment method");
         }
         String transactionReference = body.get("transaction_reference") == null
@@ -120,8 +120,7 @@ public class PortfolioController {
         notificationService.notifyAllAdmins(
                 "new_deposit_request",
                 "New deposit request",
-                (investor != null ? investor.getFullName() : "An investor") + " submitted a deposit request via "
-                        + ("binance".equals(paymentMethod) ? "Binance USDT" : "JazzCash") + ".",
+                (investor != null ? investor.getFullName() : "An investor") + " submitted a deposit request via Binance USDT.",
                 "/admin/deposit-requests",
                 "admin_deposit"
         );
