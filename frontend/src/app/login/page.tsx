@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { Loader2Icon } from "lucide-react";
 
 import { AuthCard } from "@/components/marketing/auth-card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ export default function LoginPage() {
   const router = useRouter();
   const setUser = useAuthStore((s) => s.setUser);
   const [submitting, setSubmitting] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const {
     register,
     handleSubmit,
@@ -48,6 +50,7 @@ export default function LoginPage() {
       setSessionTokens(access_token, refresh_token);
       setUser(user);
       toast.success(`Welcome back, ${user.full_name || user.email}`);
+      setRedirecting(true);
       router.push(user.role === "admin" ? "/admin/overview" : "/investor/dashboard");
     } catch (err) {
       const message = getErrorMessage(err);
@@ -57,10 +60,18 @@ export default function LoginPage() {
         return;
       }
       toast.error(message);
-    } finally {
       setSubmitting(false);
     }
   };
+
+  if (redirecting) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-background">
+        <Loader2Icon className="size-6 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Signing you in...</p>
+      </div>
+    );
+  }
 
   return (
     <AuthCard
