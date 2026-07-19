@@ -2,6 +2,11 @@
 
 Private wealth management platform — investor dashboard + admin back office.
 
+📖 **Full documentation and user manuals live in [`docs/`](docs/README.md)** —
+platform overview, [investor manual](docs/investor-manual.md),
+[admin manual](docs/admin-manual.md), [architecture](docs/architecture.md),
+[API reference](docs/api-reference.md), and [database schema](docs/database-schema.md).
+
 ## Stack
 
 - **Frontend** (`frontend/`) — Next.js 16 (App Router, TypeScript), Tailwind v4, shadcn/ui, deployed to Vercel
