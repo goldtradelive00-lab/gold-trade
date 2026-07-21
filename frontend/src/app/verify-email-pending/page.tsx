@@ -15,6 +15,12 @@ const RESEND_COOLDOWN_S = 60;
 // resend, so investors aren't tempted to spam it while it's still in transit.
 const INITIAL_WAIT_S = 120;
 
+function formatMMSS(totalSeconds: number): string {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
 export default function VerifyEmailPendingPage() {
   const [email, setEmail] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
@@ -76,7 +82,8 @@ export default function VerifyEmailPendingPage() {
         {email && (
           initialWait > 0 ? (
             <p className="mt-6 text-sm text-muted-foreground">
-              You&apos;ll receive the email shortly.
+              You&apos;ll receive the email shortly. You can request a new one in{" "}
+              <span className="text-foreground">{formatMMSS(initialWait)}</span>.
             </p>
           ) : (
             <Button
