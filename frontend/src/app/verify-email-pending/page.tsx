@@ -11,11 +11,15 @@ import { api } from "@/lib/api";
 import { getErrorMessage } from "@/lib/utils";
 
 const RESEND_COOLDOWN_S = 60;
+// Give the verification email a couple of minutes to arrive before offering a
+// resend, so investors aren't tempted to spam it while it's still in transit.
+const INITIAL_WAIT_S = 120;
 
 export default function VerifyEmailPendingPage() {
   const [email, setEmail] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [initialWait, setInitialWait] = useState(INITIAL_WAIT_S);
 
   useEffect(() => {
     setEmail(sessionStorage.getItem("pendingVerificationEmail"));
@@ -26,6 +30,12 @@ export default function VerifyEmailPendingPage() {
     const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
     return () => clearTimeout(t);
   }, [cooldown]);
+
+  useEffect(() => {
+    if (initialWait <= 0) return;
+    const t = setTimeout(() => setInitialWait((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [initialWait]);
 
   const resend = async () => {
     if (!email) return;
@@ -64,18 +74,24 @@ export default function VerifyEmailPendingPage() {
         </p>
 
         {email && (
-          <Button
-            variant="outline"
-            className="mt-6 w-full border-primary text-primary"
-            onClick={resend}
-            disabled={sending || cooldown > 0}
-          >
-            {sending
-              ? "Sending..."
-              : cooldown > 0
-                ? `Resend available in ${cooldown}s`
-                : "Resend Verification Email"}
-          </Button>
+          initialWait > 0 ? (
+            <p className="mt-6 text-sm text-muted-foreground">
+              You&apos;ll receive the email shortly.
+            </p>
+          ) : (
+            <Button
+              variant="outline"
+              className="mt-6 w-full border-primary text-primary"
+              onClick={resend}
+              disabled={sending || cooldown > 0}
+            >
+              {sending
+                ? "Sending..."
+                : cooldown > 0
+                  ? `Resend available in ${cooldown}s`
+                  : "Resend Verification Email"}
+            </Button>
+          )
         )}
 
         <Button className="mt-3 w-full" asChild>
