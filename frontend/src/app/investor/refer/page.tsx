@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Copy, Share2, UserCheck, Gift } from "lucide-react";
+import { Copy, RefreshCw, Share2, UserCheck, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
@@ -55,9 +55,15 @@ export default function ReferralPage() {
 
   const link = code && origin ? `${origin}/join?ref=${code}` : "";
 
-  const { data, isLoading } = useQuery({
+  const {
+    data,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useQuery({
     queryKey: ["portfolio", "referrals"],
     queryFn: () => api.get<ReferralsResponse>("/api/portfolio/referrals"),
+    refetchInterval: 10_000,
   });
 
   const copy = async (text: string) => {
@@ -126,9 +132,14 @@ export default function ReferralPage() {
       )}
 
       <div className="hairline-border rounded-xl bg-card p-6">
-        <h2 className="text-sm uppercase tracking-widest text-muted-foreground">
-          Referral Earnings
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm uppercase tracking-widest text-muted-foreground">
+            Referral Earnings
+          </h2>
+          <Button variant="outline" size="icon" onClick={() => refetch()} aria-label="Refresh">
+            <RefreshCw className={isFetching ? "size-4 animate-spin" : "size-4"} />
+          </Button>
+        </div>
         {isLoading || !data ? (
           <Skeleton className="mt-4 h-32 w-full" />
         ) : data.earnings.length === 0 ? (
